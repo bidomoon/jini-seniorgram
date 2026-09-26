@@ -21,7 +21,7 @@ GitHub Actions는 main 변경과 PR에서 음성·API 회귀 테스트, 타입 �
 
 지니노바(`jini-nova`) 팀의 `jini-seniorgram` 프로젝트를 사용합니다.
 `node scripts/build-netlify.mjs`로 브라우저 카드/음성 기능을 `netlify-dist`에 빌드합니다.
-Netlify의 AI 생성·로그인·서버 저장·피드는 아직 연결 전입니다. UI에 이 제한을 표시하고 서버 API는 이용 불가로 응답합니다.
+Netlify에 카카오 OAuth·세션·테스트 결제 함수가 배포되지만 실제 카카오 앱 키와 회원 DB 연결이 필요합니다. AI 생성·서버 작품 저장·피드는 아직 연결 전입니다. UI에 이 제한을 표시하고 서버 API는 이용 불가로 응답합니다.
 GitHub 자동 배포 연결 여부는 Netlify의 저장소 설정에서 확인해야 하며, 수동 소스 배포만으로 자동 연결되지는 않습니다.
 
 ## 배포 경계
@@ -45,3 +45,6 @@ GitHub 연결 작업은 생성 플래그, 이용 한도, 기존 비공개 웹앱
 개발 캐시(`*.tsbuildinfo`)와 내부 실제 API 실행 영수증(`docs/test-results`)은 공개 복사에서 제외합니다.
 원본 Sites 소스의 전체 이력이나 계정별 런타임 데이터는 복사하지 않습니다.
 운영 코드 수정 시 양쪽 최신 커밋을 확인하고 같은 변경을 반영한 뒤 Sites 배포 성공 상태를 확인합니다.
+
+출시 개발 현황 및 연결 항목은 [2026-10-26 출시 작업표](LAUNCH-2026-10-26.md)를 참고하세요.
+카카오 로그인 버튼은 카카오디벨로퍼스 공식 리소스(`https://developers.kakao.com/tool/images/resource/preview/login-complete-ko.svg`)를 사용합니다.

@@ -10,3 +10,8 @@ await writeFile(new URL('backend-unavailable.json',out),JSON.stringify({error:'ì
 await writeFile(new URL('_redirects',out),'/studio/* /:splat 301\n/api/sg/status /backend-status.json 200\n/api/sg/* /backend-unavailable.json 404\n/signin-with-chatgpt / 302\n');
 await writeFile(new URL('_headers',out),'/*\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n/backend-status.json\n  Content-Type: application/json; charset=utf-8\n  Cache-Control: no-store\n/backend-unavailable.json\n  Content-Type: application/json; charset=utf-8\n  Cache-Control: no-store\n');
 console.log('Netlify preview built: local card/voice tools; AI and account server explicitly unavailable.');
+
+// The Netlify build serves the app at the origin root, unlike the Sites /studio path.
+const manifest=JSON.parse(await readFile(new URL("manifest.webmanifest",out),"utf8"));
+Object.assign(manifest,{id:"/",start_url:"/",scope:"/"});
+await writeFile(new URL("manifest.webmanifest",out),JSON.stringify(manifest));

@@ -5,5 +5,7 @@
 [build.environment]
   NODE_VERSION = "22"
   NETLIFY_NEXT_PLUGIN_SKIP = "true"
-  NPM_FLAGS = "--version"
-  PNPM_FLAGS = "--version"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

@@ -1,3 +1,10 @@
+## 2026-09-26 — v15 commercial onboarding foundation
+
+- Netlify account/OAuth/session and test-only KakaoPay handler added; credentials and dedicated PostgreSQL still required.
+- Membership and two-tier pricing UI, no-card first-card trial, root PWA manifest for Netlify.
+- Real checkout remains unconditionally closed; AI trial grants and subscription entitlements are not activated.
+- See LAUNCH-2026-10-26.md for source-level completion and external setup gaps.
+
 ## 2026-09-26 — v13 voice integration
 
 - Initialize voice controller from the app closure with live state getters. The former separate script referenced inaccessible variables.
