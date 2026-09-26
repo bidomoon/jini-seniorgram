@@ -23,6 +23,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
         with:
           gradle-version: '8.13'
+      - uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
       - name: Prepare Android 16 and app icon
         run: |
           sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
