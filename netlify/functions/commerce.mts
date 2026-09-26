@@ -8,4 +8,4 @@ export default async (request:Request)=>{
   pool??=database(url);return pool.query(sql,values);
  }})}finally{if(pool)await pool.end()}
 };
-export const config:Config={path:['/api/account/*','/api/auth/*','/api/billing/*']};
+export const config:Config={path:['/api/account/config','/api/account/me','/api/auth/*','/api/billing/*']};

@@ -134,3 +134,11 @@ The portable build runs Vinext directly without a host `timeout` command. The ma
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
+## 10월 30일 출시 개발
+
+- [최신 출시 계획](docs/LAUNCH-2026-10-30.md)
+- [14일 비공개 테스트](docs/TESTING-14-DAYS.md)
+- `node tests/product.cjs`: 실제 PostgreSQL 엔진(PGlite), 가상 AI/파일 저장을 이용한 회원·원장·소유권·피드·탈퇴 통합 검증
+- Android는 `android/` 프로젝트와 GitHub Android build에서 APK/unsigned AAB를 생성합니다. Store 제출 완료가 아닙니다.
+- Netlify API는 서버 환경변수와 전용 PostgreSQL 마이그레이션이 필요합니다. 실제 구독은 계속 차단되어 있습니다.

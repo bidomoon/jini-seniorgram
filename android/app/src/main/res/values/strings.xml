@@ -1,0 +1,5 @@
+<resources>
+ <string name="app_name">시니어그램</string>
+ <string name="asset_statements">[{\"relation\":[\"delegate_permission/common.handle_all_urls\"],\"target\":{\"namespace\":\"web\",\"site\":\"https://jini-seniorgram.netlify.app\"}}]</string>
+ <color name="brand">#155749</color>
+</resources>

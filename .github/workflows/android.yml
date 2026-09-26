@@ -1,0 +1,41 @@
+name: Android build
+on:
+  push:
+    branches: [main]
+    paths: ['android/**', 'scripts/android-assets.mjs', 'public/studio/assets/icon-512.png', '.github/workflows/android.yml']
+  pull_request:
+    paths: ['android/**', 'scripts/android-assets.mjs', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: '8.13'
+      - name: Prepare Android 16 and app icon
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+          node scripts/android-assets.mjs
+      - name: Compile debug APK and unsigned release bundle
+        working-directory: android
+        run: gradle --no-daemon :app:assembleDebug :app:bundleRelease :app:lintRelease
+      - uses: actions/upload-artifact@v6
+        with:
+          name: seniorgram-android-unverified
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/reports/lint-results-release.html
+          if-no-files-found: error
+          retention-days: 14

@@ -1,6 +1,7 @@
 import {randomUUID} from 'node:crypto';
 import {plans,planFor,trialImages,commercialCheckoutReady,verifyPayment} from './plans';
 import {randomToken,hashToken,same,cookie,cookieValue,allowedOrigin,trustedOrigin,safePaymentURL,readBody} from './security';
+import {readiness} from '../product/types';
 type Dependencies={env:(key:string)=>string|undefined;query:(sql:string,values?:unknown[])=>Promise<{rows:any[]}>;fetch:typeof fetch};
 export async function commerce(request:Request,d:Dependencies):Promise<Response>{
  const u=new URL(request.url),path=u.pathname,origin=trustedOrigin(d.env('APP_ORIGIN'));
@@ -13,7 +14,7 @@ export async function commerce(request:Request,d:Dependencies):Promise<Response>
  const session=async()=>{const token=cookieValue(request,'__Host-sg-session');if(!token||!configured)return null;return (await d.query('SELECT a.id,a.nickname FROM sg_sessions s JOIN sg_accounts a ON a.id=s.account_id WHERE s.hash=$1 AND s.expires_at>now()',[hashToken(token)])).rows[0]||null};
  const pay=async(endpoint:string,body:unknown)=>{const r=await d.fetch('https://open-api.kakaopay.com/online/v1/payment/'+endpoint,{method:'POST',headers:{Authorization:'SECRET_KEY '+d.env('KAKAOPAY_TEST_SECRET_KEY'),'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000),redirect:'error'});if(!r.ok)throw Error('PAYMENT_PROVIDER');return r.json() as Promise<any>};
  try{
-  if(request.method==='GET'&&path==='/api/account/config')return json({loginReady,testPaymentReady,checkoutReady:commercialCheckoutReady,trial:{images:trialImages,requiresCard:false,available:false},plans,launchTarget:'2026-10-26',loginMessage:loginReady?'카카오로 시작하세요.':'카카오 로그인 연결을 준비하고 있어요. 지금은 카드 만들기를 먼저 체험하세요.'});
+  if(request.method==='GET'&&path==='/api/account/config')return json({loginReady,testPaymentReady,checkoutReady:commercialCheckoutReady,trial:{images:trialImages,requiresCard:false,available:readiness(d.env).trialAvailable},plans,launchTarget:'2026-10-30',loginMessage:loginReady?'카카오로 시작하세요.':'카카오 로그인 연결을 준비하고 있어요. 지금은 카드 만들기를 먼저 체험하세요.'});
   if(request.method==='POST'&&(!origin||u.origin!==origin||!allowedOrigin(request,origin)))return fail('이 앱 화면에서 다시 시도해주세요.',403);
   if(request.method==='GET'&&path==='/api/auth/kakao/start'){
    if(!loginReady||u.origin!==origin)return fail('카카오 로그인 연결을 준비하고 있어요.',503);

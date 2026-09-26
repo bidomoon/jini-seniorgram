@@ -49,3 +49,11 @@ next-env.d.ts
 *.tsbuildinfo
 /.netlify/
 /netlify-dist/
+
+# Android generated output and private signing material
+android/.gradle/
+android/**/build/
+android/local.properties
+android/app/src/main/res/drawable/app_icon.png
+*.jks
+*.keystore

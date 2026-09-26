@@ -1,3 +1,12 @@
+## v16 — 카카오 회원 기반 제작과 Android 출시 준비
+
+- Netlify 전용 PostgreSQL 회원 원장과 Blobs 작품 보관, 이미지/영상 비동기 작업, 내 작품/피드 연결.
+- 계정당 무료 이미지 3회, 동시 요청 중복 방지, 확정 실패 환원, 불확실 요청 보류. 공개/신고/차단/회원 탈퇴/문의와 운영 검토.
+- Android API 36 TWA 프로젝트와 CI APK/AAB 빌드, 설치·오프라인 안내. Play Billing 모듈 포함은 구매 검증/실 결제 완료를 뜻하지 않음.
+- 10월 30일 목표 및 10/8–10/22 14일 비공개 테스트 계획. 운영 키/DB/가맹점/Store Console/서명/실기기 검증이 남음.
+- PostgreSQL 엔진으로 핵심 트랜잭션 검증, 외부 AI·결제는 mock. 이번 버전에서 유료 API 호출/실 결제 없음.
+- Netlify의 생성·영상·체험·공개·저장·작업 회수 활성화는 기본 false. OpenAI 키만 이전에 승인된 연결에서 서버 비밀값으로 연결.
+
 ## 2026-09-26 — v15 commercial onboarding foundation
 
 - Netlify account/OAuth/session and test-only KakaoPay handler added; credentials and dedicated PostgreSQL still required.
