@@ -2,16 +2,17 @@ import {randomUUID} from 'node:crypto';
 import {plans,planFor,trialImages,commercialCheckoutReady,verifyPayment} from './plans';
 import {randomToken,hashToken,same,cookie,cookieValue,allowedOrigin,trustedOrigin,safePaymentURL,readBody} from './security';
 import {readiness} from '../product/types';
+import {usage} from '../product/ledger';
 type Dependencies={env:(key:string)=>string|undefined;query:(sql:string,values?:unknown[])=>Promise<{rows:any[]}>;fetch:typeof fetch};
 export async function commerce(request:Request,d:Dependencies):Promise<Response>{
  const u=new URL(request.url),path=u.pathname,origin=trustedOrigin(d.env('APP_ORIGIN'));
  const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store','Referrer-Policy':'no-referrer'}});
  const fail=(message:string,status=400)=>json({error:message},status);
  const redirect=(url:string,cookies:string[]=[])=>{const h=new Headers({'Location':url,'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});cookies.forEach(v=>h.append('Set-Cookie',v));return new Response(null,{status:303,headers:h})};
- const configured=!!origin&&!!d.env('DATABASE_URL');
+ const configured=!!origin&&readiness(d.env).database;
  const loginReady=configured&&d.env('KAKAO_LOGIN_ENABLED')==='true'&&!!d.env('KAKAO_REST_API_KEY')&&!!d.env('KAKAO_CLIENT_SECRET');
  const testPaymentReady=loginReady&&d.env('KAKAOPAY_TEST_ENABLED')==='true'&&!!d.env('KAKAOPAY_TEST_SECRET_KEY');
- const session=async()=>{const token=cookieValue(request,'__Host-sg-session');if(!token||!configured)return null;return (await d.query('SELECT a.id,a.nickname FROM sg_sessions s JOIN sg_accounts a ON a.id=s.account_id WHERE s.hash=$1 AND s.expires_at>now()',[hashToken(token)])).rows[0]||null};
+ const session=async()=>{const token=cookieValue(request,'__Host-sg-session');if(!token||!configured)return null;return (await d.query('SELECT a.id,a.nickname FROM sg_sessions s JOIN sg_accounts a ON a.id=s.account_id WHERE s.hash=$1 AND s.expires_at>now() AND a.deleted_at IS NULL',[hashToken(token)])).rows[0]||null};
  const pay=async(endpoint:string,body:unknown)=>{const r=await d.fetch('https://open-api.kakaopay.com/online/v1/payment/'+endpoint,{method:'POST',headers:{Authorization:'SECRET_KEY '+d.env('KAKAOPAY_TEST_SECRET_KEY'),'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(15000),redirect:'error'});if(!r.ok)throw Error('PAYMENT_PROVIDER');return r.json() as Promise<any>};
  try{
   if(request.method==='GET'&&path==='/api/account/config')return json({loginReady,testPaymentReady,checkoutReady:commercialCheckoutReady,trial:{images:trialImages,requiresCard:false,available:readiness(d.env).trialAvailable},plans,launchTarget:'2026-10-30',loginMessage:loginReady?'카카오로 시작하세요.':'카카오 로그인 연결을 준비하고 있어요. 지금은 카드 만들기를 먼저 체험하세요.'});
@@ -38,8 +39,10 @@ export async function commerce(request:Request,d:Dependencies):Promise<Response>
    return redirect(origin+'/?account=welcome',[clear,cookie('__Host-sg-session',sessionToken,2592000)]);
   }
   if(request.method==='GET'&&path==='/api/account/me'){
-   const account=await session();if(!account)return json({user:null});const trial=(await d.query('SELECT granted_images,used_images FROM sg_trials WHERE account_id=$1',[account.id])).rows[0];
-   return json({user:account,trial:trial?{imagesRemaining:trial.granted_images-trial.used_images}:null,subscription:null,checkoutReady:false});
+   const account=await session();if(!account)return json({user:null});
+   const credits=await usage(d.query,account.id);
+   const trialPeriods=credits.periods.filter(p=>p.source==='trial');
+   return json({user:account,trial:credits.trialClaimed?{imagesRemaining:trialPeriods.reduce((n,p)=>n+p.image_limit-p.image_used,0)}:null,usage:credits,subscription:{active:credits.periods.some(p=>['google-play','kakaopay'].includes(p.source))},checkoutReady:false});
   }
   if(request.method==='POST'&&path==='/api/auth/logout'){
    const token=cookieValue(request,'__Host-sg-session');if(token&&configured)await d.query('DELETE FROM sg_sessions WHERE hash=$1',[hashToken(token)]);const r=json({ok:true});r.headers.set('Set-Cookie',cookie('__Host-sg-session','',0));return r;
@@ -75,5 +78,8 @@ export async function commerce(request:Request,d:Dependencies):Promise<Response>
    catch{await d.query("UPDATE sg_subscription_orders SET state='unknown' WHERE id=$1",[id]);return redirect(origin+'/?account=payment-check')}
   }
   return fail('요청한 기능을 찾을 수 없어요.',404);
- }catch{return fail('연결을 마치지 못했어요. 잠시 후 다시 시도해주세요.',503)}
+ }catch{
+  if(path==='/api/auth/kakao/callback'&&origin)return redirect(origin+'/?account=login-failed',[cookie('__Host-sg-oauth','',0)]);
+  return fail('연결을 마치지 못했어요. 잠시 후 다시 시도해주세요.',503);
+ }
 }

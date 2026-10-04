@@ -33,6 +33,8 @@ jobs:
           node --check public/studio/membership.js
           node tests/voice.cjs
           node tests/commerce.cjs
+          node tests/accounts.cjs
+          node tests/database-access.cjs
           node tests/product.cjs
           node tests/api.cjs
           node tests/jobs.cjs

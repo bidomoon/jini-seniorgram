@@ -1,0 +1,38 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('node:assert/strict'),ts=require('typescript'),{randomUUID}=require('crypto'),{PGlite}=require('@electric-sql/pglite');
+const cache={};
+function read(file){file=path.resolve(file);if(cache[file])return cache[file];const out={};cache[file]=out;vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:out,require:n=>n.startsWith('.')?read(path.resolve(path.dirname(file),n+'.ts')):require(n),Buffer,Request,Response,Headers,URL,URLSearchParams,AbortSignal,TextDecoder,TextEncoder,Blob,Uint8Array,Date,Error});return out;}
+const {commerce}=read('server/commerce/handler.ts'),{product}=read('server/product/handler.ts'),{hashToken}=read('server/commerce/security.ts');
+(async()=>{
+ const db=new PGlite();
+ for(const file of fs.readdirSync('migrations/postgres').filter(f=>f.endsWith('.sql')).sort())await db.exec(fs.readFileSync('migrations/postgres/'+file,'utf8'));
+ const origin='https://jini-seniorgram.netlify.app',token='a'.repeat(43),id=randomUUID();
+ await db.query('INSERT INTO sg_accounts(id,kakao_id,nickname) VALUES($1,$2,$3)',[id,'12345','회원']);
+ await db.query("INSERT INTO sg_sessions(hash,account_id,expires_at) VALUES($1,$2,now()+interval '1 day')",[hashToken(token),id]);
+ const env={APP_ORIGIN:origin,DATABASE_URL:'test-only',PRODUCT_SCHEMA_VERSION:'3',MEDIA_STORAGE_ENABLED:'true',GENERATION_ENABLED:'true',GENERATION_DAILY_LIMIT:'10',OPENAI_API_KEY:'fake',TRIAL_ENABLED:'true',KAKAO_LOGIN_ENABLED:'true',KAKAO_REST_API_KEY:'test',KAKAO_CLIENT_SECRET:'test'};
+ let networkCalls=0;
+ const d={env:k=>env[k],query:(q,v)=>db.query(q,v),transaction:fn=>db.transaction(tx=>fn((q,v)=>tx.query(q,v))),files:{put:async()=>{},get:async()=>null,delete:async()=>{}},fetch:async()=>{networkCalls++;throw Error('Simulated provider timeout');}};
+ const req=(url,body,cookie='__Host-sg-session='+token)=>new Request(origin+url,{method:body?'POST':'GET',headers:{cookie,...(body?{'content-type':'application/json',origin}:{})},body:body?JSON.stringify(body):undefined});
+ let r=await product(req('/api/account/trial',{consent:true}),d);assert.equal(r.status,200);
+ await db.query("UPDATE sg_entitlements SET image_used=1 WHERE account_id=$1",[id]);
+ const me=await (await commerce(req('/api/account/me'),d)).json();
+ assert.equal(me.trial.imagesRemaining,2,'member screen reads current credit ledger');
+ assert.equal(me.usage.imagesRemaining,2);assert.equal(me.usage.trialClaimed,true);
+ assert.equal((await db.query('SELECT * FROM sg_trials')).rows.length,0,'legacy table remains untouched');
+ await db.query('UPDATE sg_accounts SET deleted_at=now() WHERE id=$1',[id]);
+ assert.equal((await (await commerce(req('/api/account/me'),d)).json()).user,null,'deleted member cannot use a surviving session');
+ assert.equal((await product(req('/api/account/usage'),d)).status,401);
+ delete env.PRODUCT_SCHEMA_VERSION;
+ assert.equal((await (await commerce(req('/api/account/config'),d)).json()).loginReady,false);
+ assert.equal((await commerce(req('/api/auth/kakao/start'),d)).status,503,'OAuth waits until the schema is ready');
+ env.PRODUCT_SCHEMA_VERSION='3';
+ r=await commerce(req('/api/auth/kakao/start'),d);assert.equal(r.status,303);
+ const state=new URL(r.headers.get('location')).searchParams.get('state');
+ r=await commerce(req('/api/auth/kakao/callback?code=test&state='+state,null,'__Host-sg-oauth='+state),d);
+ assert.equal(r.status,303);assert.equal(r.headers.get('location'),origin+'/?account=login-failed');
+ assert.match(r.headers.get('set-cookie'),/Max-Age=0/);
+ assert.equal(networkCalls,1);
+ await commerce(req('/api/auth/kakao/callback?code=test&state='+state,null,'__Host-sg-oauth='+state),d);
+ assert.equal(networkCalls,1,'network failure does not reuse an OAuth state');
+ await db.close();
+ console.log('PASS accounts: PostgreSQL-backed current credits, deleted-session isolation, schema gate and OAuth error recovery. No live provider calls.');
+})().catch(e=>{console.error(e);process.exitCode=1});

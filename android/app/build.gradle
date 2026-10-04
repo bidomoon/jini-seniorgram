@@ -1,4 +1,8 @@
 plugins { id 'com.android.application' }
+def releaseRequired = System.getenv('ANDROID_RELEASE_REQUIRED') == 'true'
+if (releaseRequired && ['ANDROID_KEYSTORE_PATH','ANDROID_KEYSTORE_PASSWORD','ANDROID_KEY_ALIAS','ANDROID_KEY_PASSWORD'].any { !System.getenv(it) }) {
+ throw new GradleException('Release signing configuration is incomplete. An unsigned store candidate is not allowed.')
+}
 android {
  namespace 'app.jininova.seniorgram'
  compileSdk 36
@@ -6,8 +10,8 @@ android {
   applicationId 'app.jininova.seniorgram'
   minSdk 26
   targetSdk 36
-  versionCode 1
-  versionName '0.1.0'
+  versionCode (System.getenv('ANDROID_VERSION_CODE') ?: '1').toInteger()
+  versionName System.getenv('ANDROID_VERSION_NAME') ?: '0.1.0'
  }
  signingConfigs {
   release {

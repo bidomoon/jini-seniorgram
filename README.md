@@ -2,9 +2,11 @@
 
 말과 글로 그림·영상 카드를 만들고 공유하는 시니어용 웹앱입니다.
 
-[운영 앱](https://maeum-card.jinimarketing.chatgpt.site) · [GitHub](https://github.com/bidomoon/jini-seniorgram) · [개발·배포 안내](docs/GITHUB-DEPLOYMENT.md)
+[체험 웹앱](https://jini-seniorgram.netlify.app) · [GitHub](https://github.com/bidomoon/jini-seniorgram) · [실제 연결 순서](docs/OWNER-SETUP.md) · [개발·배포 안내](docs/GITHUB-DEPLOYMENT.md)
 
 현재 음성 옵션과 카드 편집, AI 작업 API, 내 작품, 내부 피드를 구현했습니다. AI 운영 플래그는 제한 상태이며 휴대폰 마이크·SNS 공유의 실제 기기 검증은 남아 있습니다. Instagram/TikTok 자동 게시는 연결되지 않았습니다.
+
+2026-10-04: 카카오 키·전용 DB·영상 키는 연결 전이며 실제 구독 판매는 비활성입니다. 회원 화면의 체험 잔여 횟수 원장을 일치시키고 탈퇴 세션·OAuth 실패 처리를 보완했습니다. 서버 전용 DB 접근 보호, 연결 검증, 실제 키를 요구하는 서명 AAB 워크플로를 추가했습니다. 코드/로컬 테스트 통과와 실제 외부 연결 완료는 구분합니다.
 
 ---
 

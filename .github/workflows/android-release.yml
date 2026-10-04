@@ -1,0 +1,67 @@
+name: Signed Android release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'New positive integer version code, greater than the last Play upload'
+        required: true
+        type: string
+      version_name:
+        description: 'Display version, for example 0.2.0'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v5
+        with:
+          gradle-version: '8.13'
+      - uses: android-actions/setup-android@v4
+        with:
+          log-accepted-android-sdk-licenses: false
+      - name: Prepare SDK and icon
+        run: |
+          sdkmanager 'platforms;android-36' 'build-tools;35.0.0'
+          node scripts/android-assets.mjs
+      - name: Build with the real upload key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_VERSION_CODE: ${{ inputs.version_code }}
+          ANDROID_VERSION_NAME: ${{ inputs.version_name }}
+          ANDROID_RELEASE_REQUIRED: 'true'
+        run: |
+          set -euo pipefail
+          [[ "$ANDROID_VERSION_CODE" =~ ^[1-9][0-9]{0,8}$ ]] || { echo 'Invalid version code'; exit 1; }
+          [[ "$ANDROID_VERSION_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid version name'; exit 1; }
+          for key in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            test -n "${!key}" || { echo "Missing release secret: $key"; exit 1; }
+          done
+          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/seniorgram-upload.jks"
+          trap 'rm -f "$ANDROID_KEYSTORE_PATH"' EXIT
+          umask 077
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          cd android
+          gradle --no-daemon :app:bundleRelease :app:lintRelease
+          jarsigner -verify app/build/outputs/bundle/release/app-release.aab
+      - uses: actions/upload-artifact@v6
+        with:
+          name: seniorgram-signed-release-candidate
+          path: |
+            android/app/build/outputs/bundle/release/*.aab
+            android/app/build/reports/lint-results-release.html
+          if-no-files-found: error
+          retention-days: 30

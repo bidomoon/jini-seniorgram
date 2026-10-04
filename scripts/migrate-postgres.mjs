@@ -12,5 +12,5 @@ try{
   const sql=await readFile(new URL(file,dir),'utf8');await client.query('BEGIN');
   try{await client.query(sql.replace(/^BEGIN;\s*/,'').replace(/COMMIT;\s*$/,''));await client.query('INSERT INTO sg_schema_migrations(name) VALUES($1)',[file]);await client.query('COMMIT');console.log('Applied '+file)}catch(e){await client.query('ROLLBACK');throw e}
  }
- console.log('Migrations complete. Configure PRODUCT_SCHEMA_VERSION=2 only after verification.');
+ console.log('Migrations complete. Run node scripts/verify-postgres.mjs before configuring PRODUCT_SCHEMA_VERSION=3.');
 }catch{console.error('Migration failed. Check the dedicated database connection and migration state; credentials are not printed.');process.exitCode=1}finally{await client.end()}

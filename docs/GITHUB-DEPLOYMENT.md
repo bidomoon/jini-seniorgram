@@ -1,5 +1,7 @@
 # 시니어그램 소스와 배포
 
+> 2026-10-04: 현재 Netlify 체험판의 실제 연결 작업은 [OWNER-SETUP.md](OWNER-SETUP.md)를 기준으로 진행합니다. 아래 Sites 설명은 기존 비공개 시험본에 관한 내용입니다. 회원 DB 스키마 준비 버전은 3이며 실제 로그인·생성·결제는 아직 연결 검증 전입니다.
+
 - GitHub: https://github.com/bidomoon/jini-seniorgram (사용자가 생성한 공개 저장소)
 - 운영 웹앱: https://maeum-card.jinimarketing.chatgpt.site
 - 현재 서버: Sites / Cloudflare Worker, D1(DB), R2(BUCKET), Sites 인증
@@ -46,5 +48,5 @@ GitHub 연결 작업은 생성 플래그, 이용 한도, 기존 비공개 웹앱
 원본 Sites 소스의 전체 이력이나 계정별 런타임 데이터는 복사하지 않습니다.
 운영 코드 수정 시 양쪽 최신 커밋을 확인하고 같은 변경을 반영한 뒤 Sites 배포 성공 상태를 확인합니다.
 
-출시 개발 현황 및 연결 항목은 [2026-10-26 출시 작업표](LAUNCH-2026-10-26.md)를 참고하세요.
+출시 개발 현황 및 연결 항목은 [2026-10-30 출시 작업표](LAUNCH-2026-10-30.md)를 참고하세요.
 카카오 로그인 버튼은 카카오디벨로퍼스 공식 리소스(`https://developers.kakao.com/tool/images/resource/preview/login-complete-ko.svg`)를 사용합니다.

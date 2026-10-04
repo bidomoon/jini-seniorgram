@@ -15,7 +15,7 @@ export class ProductError extends Error {constructor(message:string,public statu
 export const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 export const koreanDay=()=>new Date(Date.now()+9*3600000).toISOString().slice(0,10);
 export function readiness(env:Dependencies['env']){
- const database=!!env('DATABASE_URL')&&env('PRODUCT_SCHEMA_VERSION')==='2';
+ const database=!!env('DATABASE_URL')&&env('PRODUCT_SCHEMA_VERSION')==='3';
  const storage=database&&env('MEDIA_STORAGE_ENABLED')==='true';
  const limit=(key:string)=>/^[1-9]\d{0,4}$/.test(env(key)||'')&&Number(env(key))<=10000;
  const imageReady=storage&&!!env('OPENAI_API_KEY')&&env('GENERATION_ENABLED')==='true'&&limit('GENERATION_DAILY_LIMIT');
