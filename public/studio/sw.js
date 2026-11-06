@@ -1,4 +1,4 @@
-const CACHE='seniorgram-shell-v17';
+const CACHE='seniorgram-shell-v18';
 const FILES=['./offline.html','./style.css?v=17','./assets/icon-192.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('seniorgram-shell-')&&k!==CACHE).map(k=>caches.delete(k))))));
