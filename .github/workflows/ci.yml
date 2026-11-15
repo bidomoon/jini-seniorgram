@@ -32,9 +32,12 @@ jobs:
           node --check public/studio/voice.js
           node --check public/studio/membership.js
           node --check public/studio/navigation.js
+          node --check public/studio/local-works.js
           node --check public/studio/learn.js
           node --check public/studio/install.js
           node --check public/studio/sw.js
+          node tests/local-works.cjs
+          node tests/studio-local-flow.cjs
           node tests/navigation.cjs
           node tests/voice.cjs
           node tests/commerce.cjs

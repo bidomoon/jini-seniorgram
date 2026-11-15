@@ -1,4 +1,4 @@
-const CACHE='seniorgram-shell-v19';
+const CACHE='seniorgram-shell-v21';
 const FILES=['./offline.html','./style.css?v=19','./assets/icon-192.png'];
 const PUBLIC_FILES=new Set(FILES.map(path=>new URL(path,self.location.href).href));
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
