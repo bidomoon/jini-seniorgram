@@ -2,6 +2,8 @@ import {randomUUID} from 'node:crypto';
 import {allowedOrigin,trustedOrigin,cookie} from '../commerce/security';
 import {Dependencies,ProductError,readiness,uuid,koreanDay} from './types';
 import {account,usage,claimTrial,reserveJob,daily} from './ledger';
+import {playConfig,synchronizeMember} from '../billing/play';
+import {googlePlayProvider} from '../billing/google';
 import {jobDTO,submit,refresh,moderate,serveFile,boundedBytes} from './provider';
 export async function product(request:Request,d:Dependencies):Promise<Response>{
  const u=new URL(request.url),path=u.pathname,origin=trustedOrigin(d.env('APP_ORIGIN')),ready=readiness(d.env);
@@ -27,16 +29,20 @@ export async function product(request:Request,d:Dependencies):Promise<Response>{
   if(path==='/api/account/feedback'&&request.method==='GET')return json({items:(await d.query('SELECT id,category,message,status,created_at FROM sg_feedback WHERE account_id=$1 ORDER BY created_at DESC LIMIT 30',[a.id])).rows});
   if(path==='/api/account/delete'&&request.method==='POST'){
    const b=await body();if(b.confirmation!=='탈퇴합니다')throw new ProductError('“탈퇴합니다”를 입력해주세요.');
+   if(playConfig(d.env).ready)await synchronizeMember(d,googlePlayProvider(d),a.id);
    await d.transaction(async q=>{
     await q('SELECT id FROM sg_accounts WHERE id=$1 FOR UPDATE',[a.id]);
-    const active=(await q("SELECT id FROM sg_entitlements WHERE account_id=$1 AND source IN ('google-play','kakaopay') AND revoked_at IS NULL AND (ends_at IS NULL OR ends_at>now()) LIMIT 1",[a.id])).rows;
-    // Until provider cancellation is integrated, never imply deletion stops billing.
+    const activeSQL=d.env('BILLING_SCHEMA_VERSION')==='1'?"SELECT e.id FROM sg_entitlements e WHERE e.account_id=$1 AND e.source IN ('google-play','kakaopay') AND e.revoked_at IS NULL AND (e.ends_at IS NULL OR e.ends_at>now()) AND (e.source='kakaopay' OR NOT EXISTS(SELECT 1 FROM sg_play_purchases p WHERE p.account_id=e.account_id AND e.reference LIKE 'play:'||p.token_hash||':%' AND p.auto_renewing=false AND p.checked_at>now()-interval '5 minutes')) LIMIT 1":"SELECT id FROM sg_entitlements WHERE account_id=$1 AND source IN ('google-play','kakaopay') AND revoked_at IS NULL AND (ends_at IS NULL OR ends_at>now()) LIMIT 1";
+    const active=(await q(activeSQL,[a.id])).rows;
+    // Account deletion never cancels a store subscription. A freshly verified
+    // cancelled Play subscription does not block erasing the account.
     if(active.length)throw new ProductError('먼저 구독을 해지해주세요. 구독 확인이 끝난 뒤 탈퇴를 완료할 수 있습니다.',409);
     await q("INSERT INTO sg_file_deletions(object_key) SELECT 'members/'||account_id||'/jobs/'||id||CASE WHEN kind='image' THEN '.png' ELSE '.mp4' END FROM sg_jobs WHERE account_id=$1 ON CONFLICT DO NOTHING",[a.id]);
     await q('INSERT INTO sg_file_deletions(object_key) SELECT object_key FROM sg_posts WHERE account_id=$1 ON CONFLICT DO NOTHING',[a.id]);
     await q("UPDATE sg_jobs SET deleted_at=now(),prompt='',message=NULL WHERE account_id=$1",[a.id]);
     await q("UPDATE sg_posts SET state='hidden',title='' WHERE account_id=$1",[a.id]);
     await q('DELETE FROM sg_likes WHERE account_id=$1',[a.id]);await q('DELETE FROM sg_blocks WHERE account_id=$1 OR blocked_id=$1',[a.id]);await q('DELETE FROM sg_reports WHERE account_id=$1',[a.id]);await q('DELETE FROM sg_feedback WHERE account_id=$1',[a.id]);
+    if(d.env('BILLING_SCHEMA_VERSION')==='1')await q("UPDATE sg_play_purchases SET token_cipher='',state='account-deleted' WHERE account_id=$1",[a.id]);
     await q('UPDATE sg_entitlements SET revoked_at=now() WHERE account_id=$1',[a.id]);await q('DELETE FROM sg_sessions WHERE account_id=$1',[a.id]);
     await q("UPDATE sg_accounts SET deleted_at=now(),nickname='',kakao_id='deleted:'||id WHERE id=$1",[a.id]);
    });const r=json({ok:true,message:'탈퇴가 완료되어 작품이 더 이상 표시되지 않습니다. 보관 파일 삭제를 처리합니다. 카카오의 연결된 서비스 관리에서도 시니어그램 연결을 해제할 수 있어요.'});r.headers.set('Set-Cookie',cookie('__Host-sg-session','',0));return r;

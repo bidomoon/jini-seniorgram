@@ -15,8 +15,9 @@ try{
  }
  // Check required relations/columns without reading any member records.
  await client.query('SELECT a.deleted_at,e.image_used,e.video_used FROM sg_accounts a LEFT JOIN sg_entitlements e ON a.id=e.account_id LIMIT 0');
+ await client.query('SELECT token_hash,token_cipher,auto_renewing,replaced_by_hash FROM sg_play_purchases LIMIT 0');
  const checks={migrationsReady,privateTablesProtected:privateTables.length>=10&&privateTables.every(t=>t.relrowsecurity),clientAccessBlocked,requiredColumnsPresent:true};
  const ready=Object.values(checks).every(Boolean);
- console.log(JSON.stringify({ready,checks,missingMigrations:expected.filter(n=>!applied.includes(n)),next:ready?'Set PRODUCT_SCHEMA_VERSION=3. Authentication and generation remain separate.':'Resolve failed checks before enabling members.'},null,2));
+ console.log(JSON.stringify({ready,checks,missingMigrations:expected.filter(n=>!applied.includes(n)),next:ready?'Set PRODUCT_SCHEMA_VERSION=3 and BILLING_SCHEMA_VERSION=1. Authentication and generation remain separate.':'Resolve failed checks before enabling members.'},null,2));
  if(!ready)process.exitCode=1;
 }catch{console.error('Database verification failed. No credentials or member records were printed.');process.exitCode=1;}finally{await client.end();}

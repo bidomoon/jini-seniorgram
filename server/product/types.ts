@@ -10,6 +10,7 @@ export type Dependencies = {
  transaction:<T>(fn:(query:Query)=>Promise<T>)=>Promise<T>;
  fetch:typeof fetch;
  files:Files;
+ playCredentials?:()=>Promise<{email:string;privateKey:string}>;
 };
 export class ProductError extends Error {constructor(message:string,public status=400){super(message)}}
 export const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);

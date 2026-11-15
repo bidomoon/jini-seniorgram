@@ -8,7 +8,7 @@ async function read(path){
   return await response.json();
  }catch{return null;}
 }
-const [account,status,links]=await Promise.all(['/api/account/config','/api/sg/status','/.well-known/assetlinks.json'].map(read));
+const [account,status,links,play]=await Promise.all(['/api/account/config','/api/sg/status','/.well-known/assetlinks.json','/api/billing/play/config'].map(read));
 const checks={
  api_reachable:!!account&&!!status,
  member_database:status?.database===true,
@@ -18,6 +18,8 @@ const checks={
  image_trial:account?.trial?.available===true&&status?.trialAvailable===true,
  video_generation:status?.videoReady===true,
  community:status?.communityReady===true,
+ play_restore_configured:play?.ready===true,
+ play_live_verified:play?.live===true,
  subscription_sales:account?.checkoutReady===true,
  android_domain_verified:Array.isArray(links)&&links.some(link=>link.relation?.includes('delegate_permission/common.handle_all_urls')&&link.target?.namespace==='android_app'&&link.target?.package_name==='app.jininova.seniorgram'&&Array.isArray(link.target.sha256_cert_fingerprints)&&link.target.sha256_cert_fingerprints.length>0&&link.target.sha256_cert_fingerprints.every(x=>/^([0-9A-F]{2}:){31}[0-9A-F]{2}$/i.test(x))),
 };
