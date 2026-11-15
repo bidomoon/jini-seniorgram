@@ -14,9 +14,9 @@ class Image{constructor(){this.complete=true;this.naturalWidth=this.width=900;th
 const storage=new Map();const location=new URL('https://jini-seniorgram.netlify.app/');
 const history={state:null,replaceState(state){this.state=state},pushState(state){this.state=state}};
 const navigator={};window.indexedDB=new IDBFactory();window.scrollTo=()=>{};
-const sandbox={window,document,location,history,navigator,Image,HTMLCanvasElement:window.HTMLCanvasElement,Blob,File,URL:Object.assign(class extends URL{}, {createObjectURL:()=>`blob:local-${++objectURLs}`,revokeObjectURL(){}}),crypto:{randomUUID},localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},setTimeout:(fn,t)=>{const timer=setTimeout(fn,t);timer.unref();return timer},clearTimeout,requestAnimationFrame:()=>1,cancelAnimationFrame(){},fetch:async()=>({ok:true,json:async()=>({database:false,imageReady:false})}),performance,console};
+const sandbox={window,document,location,history,navigator,Image,HTMLCanvasElement:window.HTMLCanvasElement,Blob,File,URL:Object.assign(class extends URL{}, {createObjectURL:()=>`blob:local-${++objectURLs}`,revokeObjectURL(){}}),Event:window.Event,crypto:{randomUUID},localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},setTimeout:(fn,t)=>{const timer=setTimeout(fn,t);timer.unref();return timer},clearTimeout,requestAnimationFrame:()=>1,cancelAnimationFrame(){},fetch:async()=>({ok:true,json:async()=>({database:false,imageReady:false})}),performance,console};
 const context=vm.createContext(sandbox);
-for(const file of ['catalog','navigation','local-works','app','learn'])vm.runInContext(fs.readFileSync('public/studio/'+file+'.js','utf8'),context,{filename:file+'.js'});
+for(const file of ['catalog','navigation','local-works','voice','app','learn'])vm.runInContext(fs.readFileSync('public/studio/'+file+'.js','utf8'),context,{filename:file+'.js'});
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function until(test){for(let i=0;i<100;i++){if(test())return;await tick()}assert.fail('UI did not settle')}
 (async()=>{
@@ -38,5 +38,18 @@ async function until(test){for(let i=0;i<100;i++){if(test())return;await tick()}
  const store=window.createSeniorgramWorkStore();const records=await store.list();
  assert.equal(await (await store.get(records[0].id)).blob.text(),'test-png-bytes');await store.close();
  document.querySelector('#nav-create').onclick();assert.equal(document.querySelector('.sg-local-viewer'),null);
+ // Run real voice-controller + card code together using typed recognition text.
+ const request=async text=>{document.querySelector('#voice-type').onclick();const input=document.querySelector('#voice-text');input.value=text;input.oninput();await document.querySelector('#voice-confirm').onclick()};
+ await request('아침 인사 만들어줘');assert.match(document.querySelector('#app h1').textContent,/좋은 아침/,'everyday greeting opens a usable free card');
+ await request('받는 이름을 서준으로 바꿔줘');assert.equal(document.querySelector('#recipient').value,'서준');
+ await request('문구를 늘 건강하고 행복하세요로 바꿔줘');assert.equal(document.querySelector('#message').value,'늘 건강하고 행복하세요');
+ await request('이대로 카드 완성해줘');assert(document.querySelector('#result-image'));
+ await request('내 작품에 보관해줘');assert.match(document.querySelector('#keep-image').textContent,/보관 완료/);
+ await request('내 작품 보여줘');await until(()=>document.querySelectorAll('[data-local-open]').length===2);
+ await request('꽃밭을 그려줘');await until(()=>!document.querySelector('#ai-status')?.textContent.includes('확인하고'));
+ assert.equal(document.querySelector('#voice-next').hidden,false,'closed AI leaves an actionable free-card alternative');
+ assert(!document.querySelector('#command-voice-status').textContent.includes('요청을 보냈어요'));
+ document.querySelector('#voice-card-fallback').onclick();assert(document.querySelector('[data-template]'));
+ console.log('PASS voice-to-card integration: greeting → name/copy → finish → durable keep → gallery; unavailable AI → free-card recovery. Recognition text, Canvas and device APIs are mocked.');
  console.log('PASS studio flow: lesson → edit → image export → keep → repeat keep → local gallery without login → reopen; actual photo/phone rendering not simulated.');
 })().catch(error=>{console.error(error);process.exitCode=1});

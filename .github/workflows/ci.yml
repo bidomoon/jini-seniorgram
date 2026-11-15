@@ -41,6 +41,7 @@ jobs:
           node tests/studio-local-flow.cjs
           node tests/navigation.cjs
           node tests/voice.cjs
+          node tests/voice-states.cjs
           node tests/play-billing.cjs
           node tests/play-restore.cjs
           node tests/commerce.cjs

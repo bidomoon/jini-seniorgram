@@ -12,7 +12,7 @@ getBackground('flowers');
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('visible');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('visible'),5000)}
 function scrollToTop(){window.scrollTo({top:0,behavior:'auto'})}
 function clearOutput(){localImageId=localVideoId=null;currentPostId=null;for(const url of [pngURL,videoURL])if(url)URL.revokeObjectURL(url);pngBlob=videoBlob=null;pngURL=videoURL=null}
-function renderPage(p){localWorks.cleanup();stopPreview();stopAIPoll();page=p;if(p==='home')home();else if(p==='templates')templateHome();else if(p==='ai-image'||p==='ai-video')aiStudio(p);else if(p==='feed')feedPage();else if(p==='gallery')galleryPage();else if(p==='edit')editor();else if(p==='result')result();scrollToTop()}
+function renderPage(p){localWorks.cleanup();stopPreview();stopAIPoll();page=p;if(p==='home')home();else if(p==='templates')templateHome();else if(p==='ai-image'||p==='ai-video')aiStudio(p);else if(p==='feed')feedPage();else if(p==='gallery')galleryPage();else if(p==='edit')editor();else if(p==='result')result();scrollToTop();window.dispatchEvent(new window.Event('sg-page-changed'))}
 let navigation;
 function setPage(p){return navigation.go(p)}
 window.addEventListener('sg-update-request',event=>{if(busy||recording){event.preventDefault();toast('녹음 또는 파일 만들기를 마친 뒤 업데이트해주세요.')}});
@@ -23,7 +23,7 @@ applyFont();$('#font').onclick=()=>{large=!large;applyFont();try{localStorage.se
 function templateHome(){app.innerHTML=`<section class="hero"><div class="hero-copy"><span class="eyebrow">소중한 사람에게 전하는 작은 선물</span><h1>사진 한 장으로,<br>웃음 한 번 더.</h1><p>평범한 인사도, 웃기는 장난도.<br>사진 한 장에 내 목소리까지 담아보세요.</p><div class="steps"><span><b>1</b>상황 고르기</span><span><b>2</b>이름 넣기</span><span><b>3</b>저장하기</span></div></div><div class="hero-photo"><img src="assets/flowers.png" alt="아래쪽에 노란 꽃과 흰 꽃이 피어 있는 인사 카드 배경"><div class="sample-card"><small>소중한 당신께</small><strong>오늘도 좋은 하루</strong><p>아침 햇살처럼 따뜻한 일들이<br>가득한 하루 보내세요.</p></div><span class="sample-label">이런 카드를 만들어요</span></div></section><section class="saved-tools"><button class="secondary" id="favorites-toggle">${onlyFavorites?'전체 디자인 보기':'♡ 즐겨찾는 디자인'}</button><button class="secondary" id="restore-draft" ${readCardLocal('maeum-draft',null)?'':'hidden'}>저장한 문구·설정 이어하기</button></section><section class="template-section"><div class="section-title"><h2>마음에 드는 완성 예시를 골라보세요</h2><p>30개 템플릿 · 사진·문구·효과 변경 가능</p></div><div class="filters" aria-label="템플릿 종류">${groups.map((g,i)=>`<button class="chip" data-template-filter="${i}" aria-pressed="${templateFilter===g}">${g}</button>`).join('')}</div><div class="template-grid" id="template-grid"></div><button class="secondary wide" id="more-templates">템플릿 더 보기</button></section><div class="section-title"><h2>상황부터 고르고 싶으세요?</h2><p>28가지 상황 · 내 사진과 목소리도 넣어보세요</p></div><div class="filters" role="group" aria-label="상황 종류">${groups.map((g,i)=>`<button class="chip" data-filter="${i}" aria-pressed="${filter===g}">${g}</button>`).join('')}</div><div class="occasion-grid" id="occasions"></div>`;app.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=groups[Number(b.dataset.filter)];templateHome()});paintOccasions();renderTemplateGallery();$('#favorites-toggle').onclick=()=>{onlyFavorites=!onlyFavorites;templateFilter='모두';templateLimit=12;templateHome()};$('#restore-draft').onclick=restoreDraft;app.querySelectorAll('[data-template-filter]').forEach(b=>b.onclick=()=>{templateFilter=groups[Number(b.dataset.templateFilter)];templateLimit=12;app.querySelectorAll('[data-template-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderTemplateGallery()});$('#more-templates').onclick=()=>{templateLimit+=12;renderTemplateGallery()}}
 function openOccasion(id) {
   const occasion = getOccasion(id);
-  Object.assign(state, { occasion: occasion.id, title: occasion.title, message: occasion.message, when: '', where: '' });
+  Object.assign(state, { occasion: occasion.id, title: occasion.title, message: occasion.message, recipient: '', sender: '', when: '', where: '' });
   if (occasion.group === '웃음과 장난') applyStyle('funny');
   clearOutput();
   setPage('edit');
@@ -184,11 +184,11 @@ async function galleryPage(){
  }catch(e){if(token===aiViewToken&&$('#my-jobs')){if(e.status===401)showSignIn($('#my-jobs'));else $('#my-jobs').textContent=e.message}}
 }
 async function keepLocalWork(kind){
- if(busy||recording)return;const blob=kind==='video'?videoBlob:pngBlob;if(!blob)return;
- const button=$('#keep-'+kind);button.disabled=true;busy=true;
+ if(busy||recording)return false;const blob=kind==='video'?videoBlob:pngBlob;if(!blob)return false;
+ const button=$('#keep-'+kind);if(!button)return false;button.disabled=true;busy=true;
  const id=kind==='video'?(localVideoId||=crypto.randomUUID()):(localImageId||=crypto.randomUUID());
- try{await localWorks.save({id,title:cardCopy(state).title,kind,blob});button.textContent='보관 완료 · 내 작품에서 확인하세요';}
- catch(error){toast(error.message)}finally{busy=false;if(button.isConnected)button.disabled=false}
+ try{await localWorks.save({id,title:cardCopy(state).title,kind,blob});button.textContent='보관 완료 · 내 작품에서 확인하세요';return true;}
+ catch(error){toast(error.message);return false}finally{busy=false;if(button.isConnected)button.disabled=false}
 }
 
 async function feedPage(){app.innerHTML='<button class="back" id="feed-back">← 처음으로</button><h1>우리 피드</h1><p>현재 비공개 시험 운영입니다. 이 사이트의 허용된 이용자끼리 볼 수 있어요.</p><div class="choices"><button class="secondary" id="feed-all">전체 작품</button><button class="secondary" id="feed-create">나도 만들기</button></div><div id="feed-items" class="template-grid"><p>작품을 불러오고 있어요…</p></div>';$('#feed-back').onclick=()=>setPage('home');$('#feed-create').onclick=()=>setPage('templates');$('#feed-all').onclick=()=>{const url=new URL(location.href);url.searchParams.delete('post');history.replaceState(history.state,'',url.pathname+url.search);feedPage()};try{const postId=new URL(location.href).searchParams.get('post');const d=await sgRequest('feed'+(postId?'?post='+encodeURIComponent(postId):''));if(page!=='feed')return;$('#feed-items').innerHTML=d.posts.length?d.posts.map(p=>`<article class="sg-post"><img src="/api/sg/image/${encodeURIComponent(p.id)}" alt="${escapeHTML(p.title)}" loading="lazy"><h2>${escapeHTML(p.title)}</h2><button class="secondary" data-post-link="${p.id}">작품 링크 복사</button><button class="secondary" data-like="${p.id}" data-liked="${p.liked?'1':'0'}">${p.liked?'♥':'♡'} 좋아요 ${p.likes}</button><button class="back" data-report="${p.id}">신고</button>${p.mine?`<button class="back" data-delete="${p.id}">내 작품 삭제</button>`:`<button class="back" data-block="${p.id}">이 작성자 숨기기</button>`}</article>`).join(''):'<div class="empty-favorites"><h2>첫 작품을 기다리고 있어요.</h2><p>카드를 만든 뒤 ‘내부 피드에 올리기’로 나눠보세요. AI 안전 검사 연결 후 게시할 수 있습니다.</p></div>';app.querySelectorAll('[data-post-link]').forEach(b=>b.onclick=()=>sharingDialog(null,null,'',b.dataset.postLink));for(const action of ['like','report','block','delete'])app.querySelectorAll('[data-'+action+']').forEach(b=>b.onclick=async()=>{if(action==='delete'&&!confirm('내 작품을 작품 모임에서 삭제할까요?'))return;b.disabled=true;try{await sgRequest(action,{id:b.dataset[action],liked:b.dataset.liked!=='1',reason:'이용자 검토 요청'});toast(action==='report'?'신고를 접수했어요.':'반영했어요.');await feedPage()}catch(e){toast(e.message);b.disabled=false}})}catch(e){if($('#feed-items'))$('#feed-items').textContent=e.message}}
@@ -211,6 +211,16 @@ navigation.start(new URL(location.href).searchParams.has('post')?'feed':'home');
 window.initSeniorgramVoice?.({
  get busy(){return busy},get recording(){return recording},get page(){return page},
  get videoBlob(){return videoBlob},get pngBlob(){return pngBlob},get videoExt(){return videoExt},get currentPostId(){return currentPostId},
- setPage,openOccasion,readCardLocal,jobDraftKey,sharingDialog,shareChannels
+ setPage,openOccasion,readCardLocal,jobDraftKey,sharingDialog,shareChannels,
+ updateCard(field,value){
+  const limits={recipient:16,sender:16,title:30,message:100};
+  if(!['edit','result'].includes(page))return '카드 디자인을 먼저 고른 뒤 이름이나 문구를 바꿔주세요.';
+  if(!Object.hasOwn(limits,field)||!value||value.length>limits[field])return '이름은 16자, 제목은 30자, 문구는 100자 이내로 말씀해주세요.';
+  state[field]=value;clearOutput();setPage('edit');const input=$('#'+field);input?.closest('details')?.setAttribute('open','');input?.focus();
+  return '카드에 “'+value+'”을 넣었어요. 미리보기를 확인하고 카드를 완성해주세요.';
+ },
+ async finishCard(){if(page!=='edit')return false;await makeImage();return page==='result'&&!!pngBlob},
+ async keepCurrent(){if(page!=='result')return false;return keepLocalWork($('#video-actions')&&!$('#video-actions').hidden?'video':'image')},
+ saveHelp(){if(page!=='result'||!pngBlob)return false;showSaveHelp();return true}
 });
 })();
