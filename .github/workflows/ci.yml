@@ -30,6 +30,7 @@ jobs:
         run: |
           node --check public/studio/app.js
           node --check public/studio/voice.js
+          node --check public/studio/media-actions.js
           node --check public/studio/play-billing.js
           node --check public/studio/membership.js
           node --check public/studio/navigation.js
@@ -37,6 +38,7 @@ jobs:
           node --check public/studio/learn.js
           node --check public/studio/install.js
           node --check public/studio/sw.js
+          node tests/media-actions.cjs
           node tests/local-works.cjs
           node tests/studio-local-flow.cjs
           node tests/navigation.cjs

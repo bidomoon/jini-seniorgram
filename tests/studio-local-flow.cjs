@@ -16,7 +16,7 @@ const history={state:null,replaceState(state){this.state=state},pushState(state)
 const navigator={};window.indexedDB=new IDBFactory();window.scrollTo=()=>{};
 const sandbox={window,document,location,history,navigator,Image,HTMLCanvasElement:window.HTMLCanvasElement,Blob,File,URL:Object.assign(class extends URL{}, {createObjectURL:()=>`blob:local-${++objectURLs}`,revokeObjectURL(){}}),Event:window.Event,crypto:{randomUUID},localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},setTimeout:(fn,t)=>{const timer=setTimeout(fn,t);timer.unref();return timer},clearTimeout,requestAnimationFrame:()=>1,cancelAnimationFrame(){},fetch:async()=>({ok:true,json:async()=>({database:false,imageReady:false})}),performance,console};
 const context=vm.createContext(sandbox);
-for(const file of ['catalog','navigation','local-works','voice','app','learn'])vm.runInContext(fs.readFileSync('public/studio/'+file+'.js','utf8'),context,{filename:file+'.js'});
+for(const file of ['catalog','navigation','media-actions','local-works','voice','app','learn'])vm.runInContext(fs.readFileSync('public/studio/'+file+'.js','utf8'),context,{filename:file+'.js'});
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function until(test){for(let i=0;i<100;i++){if(test())return;await tick()}assert.fail('UI did not settle')}
 (async()=>{
@@ -35,6 +35,15 @@ async function until(test){for(let i=0;i<100;i++){if(test())return;await tick()}
  document.querySelector('[data-local-open]').onclick();await until(()=>document.querySelector('.sg-local-viewer'));
  assert(document.querySelector('.sg-local-viewer img'));
  document.querySelector('[data-close]').onclick();
+ document.querySelector('[data-local-open]').onclick();await until(()=>document.querySelector('.sg-local-viewer'));
+ window.seniorgramVoice.open();assert(document.querySelector('.sg-voice-dialog'),'voice controls can open above a work');
+ document.querySelector('#voice-type').onclick();document.querySelector('#voice-text').value='내 작품에 보관해줘';document.querySelector('#voice-text').oninput();await document.querySelector('#voice-confirm').onclick();
+ assert(document.querySelector('.sg-media-save'),'saved work voice save opens a gesture-based file help');assert.equal(document.querySelector('.sg-voice-dialog'),null,'voice dialog closes after handing off');assert(document.querySelector('.sg-voice-panel'),'one panel returns to its home');
+ document.querySelector('.sg-media-save [data-close]').onclick();
+ window.seniorgramVoice.open();document.querySelector('#voice-type').onclick();document.querySelector('#voice-text').value='카톡으로 보내줘';document.querySelector('#voice-text').oninput();await document.querySelector('#voice-confirm').onclick();
+ assert.match(document.querySelector('#channel-dialog').textContent,/카카오톡/,'voice share uses the opened local file');assert.equal(document.querySelector('.sg-voice-dialog'),null);
+ document.querySelector('#channel-close').onclick();assert(document.querySelector('.sg-local-viewer'),'shared-file preparation keeps the original viewer available');
+
  const store=window.createSeniorgramWorkStore();const records=await store.list();
  assert.equal(await (await store.get(records[0].id)).blob.text(),'test-png-bytes');await store.close();
  document.querySelector('#nav-create').onclick();assert.equal(document.querySelector('.sg-local-viewer'),null);

@@ -79,8 +79,8 @@ window.createSeniorgramWorkStore = function ({ indexedDB = window.indexedDB } = 
 window.initSeniorgramLocalWorks = function ({ toast }) {
  const store = window.createSeniorgramWorkStore();
  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- let viewer = null, deletion = null, loadVersion = 0;
- function cleanup() { loadVersion++; if (viewer) viewer.close(); if (deletion) deletion.close(); }
+ let viewer = null, deletion = null, loadVersion = 0, selected = null;
+ function cleanup() { selected=null; loadVersion++; if (viewer) viewer.close(); if (deletion) deletion.close(); }
  async function view(id, container) {
   const version = ++loadVersion;
   try {
@@ -90,16 +90,16 @@ window.initSeniorgramLocalWorks = function ({ toast }) {
    const url = URL.createObjectURL(item.blob), name = '시니어그램-' + item.kind + (item.kind === 'image' ? '.png' : item.mime.startsWith('video/mp4') ? '.mp4' : '.webm');
    const dialog = document.createElement('dialog'); viewer = dialog;
    dialog.className = 'sg-member-dialog sg-local-viewer'; dialog.setAttribute('aria-labelledby', 'local-work-title');
-   dialog.innerHTML = `<button class="secondary" data-close>닫기</button><h1 id="local-work-title">${esc(item.title)}</h1>${item.kind === 'image' ? `<img class="saved-image" src="${url}" alt="${esc(item.title)}">` : `<video class="video-player" src="${url}" controls playsinline preload="metadata"></video>`}<a class="primary wide" href="${url}" download="${name}">파일로 저장하기</a><button class="secondary wide" data-share>휴대폰 공유창 열기</button><p role="status" data-status></p><p class="hint">공유할 앱과 받을 사람을 직접 선택하세요. 이 파일은 자동으로 전송되지 않아요.</p>`;
+   dialog.innerHTML = `<button class="secondary" data-close>닫기</button><h1 id="local-work-title">${esc(item.title)}</h1>${item.kind === 'image' ? `<img class="saved-image" src="${url}" alt="${esc(item.title)}">` : `<video class="video-player" src="${url}" controls playsinline preload="metadata"></video>`}<a class="primary wide" href="${url}" download="${name}">파일로 저장하기</a><button class="secondary wide" data-share>휴대폰 공유창 열기</button><button class="secondary wide" data-save-help>저장 방법 · 저장 위치 선택</button><button class="secondary wide" data-voice>말로 저장 · 공유 안내</button><p role="status" data-status></p><p class="hint">공유할 앱과 받을 사람을 직접 선택하세요. 이 파일은 자동으로 전송되지 않아요.</p>`;
+   selected={...item,name};
    document.body.append(dialog);
    dialog.querySelector('[data-close]').onclick = () => dialog.close();
-   dialog.querySelector('[data-share]').onclick = async () => {
-    const status = dialog.querySelector('[data-status]'), file = new File([item.blob], name, { type: item.mime });
-    if (!navigator.share || !navigator.canShare?.({ files: [file] })) { status.textContent = '이 브라우저는 파일 공유를 지원하지 않아요. 파일로 저장한 뒤 원하는 앱에서 첨부해주세요.'; return; }
-    try { await navigator.share({ files: [file] }); status.textContent = '공유창에서 선택을 마쳤어요. 전송 결과는 선택한 앱에서 확인해주세요.'; }
-    catch (error) { status.textContent = error.name === 'AbortError' ? '공유를 취소했어요. 작품은 그대로 보관돼요.' : '공유하지 못했어요. 파일로 저장한 뒤 보내주세요.'; }
-   };
-   dialog.addEventListener('close', () => { dialog.querySelector('video')?.pause(); URL.revokeObjectURL(url); dialog.remove(); if (viewer === dialog) viewer = null; if (container.isConnected) container.querySelector(`[data-local-open="${id}"]`)?.focus(); }, { once:true });
+   const status=dialog.querySelector('[data-status]'),shareButton=dialog.querySelector('[data-share]');
+   shareButton.onclick=async()=>{shareButton.disabled=true;try{await window.seniorgramMedia.share(item.blob,name,status)}finally{if(shareButton.isConnected)shareButton.disabled=false}};
+   dialog.querySelector('[data-save-help]').onclick=()=>window.seniorgramMedia.openSave(item.blob,name);
+   dialog.querySelector('[data-voice]').onclick=()=>window.seniorgramVoice?.open();
+   dialog.querySelector('a[download]').onclick=()=>window.seniorgramMedia.requested(status);
+   dialog.addEventListener('close', () => { dialog.querySelector('video')?.pause(); URL.revokeObjectURL(url); dialog.remove(); if (viewer === dialog) {viewer = null; selected=null;} if (container.isConnected) container.querySelector(`[data-local-open="${id}"]`)?.focus(); }, { once:true });
    dialog.showModal();
   } catch(error) { toast(error.message); }
  }
@@ -123,7 +123,7 @@ window.initSeniorgramLocalWorks = function ({ toast }) {
   } catch(error) { if (version === loadVersion && container.isConnected) container.textContent = error.message; }
  }
  return {
-  cleanup, render,
+  cleanup, render, current:()=>selected,
   async save(item) {
    const saved = await store.save(item);
    toast('이 기기 내 작품에 보관했어요. 창을 닫아도 다시 열 수 있어요.');

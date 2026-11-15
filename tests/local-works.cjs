@@ -10,7 +10,7 @@ function setup(indexedDB=new IDBFactory()){
  document.createElement=function(tag){const el=originalCreate(tag);if(tag==='dialog'){el.showModal=()=>{el.open=true};el.close=()=>{el.open=false;el.dispatchEvent(new window.Event('close'))}}return el};
  Object.assign(window,{indexedDB});
  const navigator={};
- vm.runInNewContext(source,{window,document,navigator,Blob,File,URL:URLs,Date,Error,Promise,Number,String});
+ const sandbox={window,document,navigator,Blob,File,URL:URLs,Date,Error,Promise,Number,String};const context=vm.createContext(sandbox);vm.runInContext(fs.readFileSync('public/studio/media-actions.js','utf8'),context);vm.runInContext(source,context);
  return {window,document,navigator,store:window.createSeniorgramWorkStore(),urls:()=>({created,revoked})};
 }
 const blob=new Blob(['finished-png-content'],{type:'image/png'});
@@ -52,8 +52,9 @@ async function until(test){for(let i=0;i<100;i++){if(test())return;await tick()}
  let notices=[];const app=ui.window.initSeniorgramLocalWorks({toast:s=>notices.push(s)}),container=ui.document.querySelector('#works');
  await app.render(container);assert.equal(container.querySelector('h3').textContent,'<img src=x onerror=alert(1)>');assert.equal(container.querySelector('img'),null,'titles render as plain text');
  container.querySelector('[data-local-open]').onclick();await until(()=>ui.document.querySelector('dialog')?.open);
+ assert.equal(app.current().id,'private','voice uses only the explicitly opened work');
  let dialog=ui.document.querySelector('dialog');await dialog.querySelector('[data-share]').onclick();assert.match(dialog.querySelector('[data-status]').textContent,/ファイル|파일로 저장/);
- dialog.querySelector('[data-close]').onclick();assert.deepEqual(ui.urls(),{created:1,revoked:1},'closing viewer releases media URL');
+ dialog.querySelector('[data-close]').onclick();assert.equal(app.current(),null,'closing clears selected private media');assert.deepEqual(ui.urls(),{created:1,revoked:1},'closing viewer releases media URL');
  container.querySelector('[data-local-delete]').onclick();dialog=ui.document.querySelector('dialog');dialog.querySelector('[data-cancel]').onclick();assert(await ui.store.get('private'),'cancel keeps original work');
  container.querySelector('[data-local-delete]').onclick();dialog=ui.document.querySelector('dialog');await dialog.querySelector('[data-confirm]').onclick();assert.equal(await ui.store.get('private'),null);assert.match(container.textContent,/아직 보관한 작품/);
  await ui.store.save(work('late'));await app.render(container);container.querySelector('[data-local-open]').onclick();app.cleanup();await tick();await tick();assert.equal(ui.document.querySelector('dialog'),null,'navigation cancels stale asynchronous viewer');

@@ -1,9 +1,10 @@
 /* Voice input always passes through a visible review before acting. */
 window.initSeniorgramVoice=function(ctx){
  const panel=document.createElement('section');panel.className='sg-voice-panel';panel.setAttribute('aria-label','말로 만들기');
- panel.innerHTML='<div class="sg-voice-heading"><h2>말로 하기</h2><button type="button" class="primary" id="voice-start" aria-pressed="false">🎤 말로 하기</button></div><p class="sg-voice-steps">1. 마이크 누르기 → 2. 천천히 말하기 → 3. 내용 확인하기</p><p>“아침 인사 만들어줘”, “손녀 생일 카드 만들어줘”라고 말해보세요.</p><button type="button" class="secondary" id="voice-type">글로 요청하기</button><p id="command-voice-status" role="status" aria-live="polite">말하기가 어려우면 글로 요청하기를 눌러주세요.</p><p id="voice-transcript" aria-live="off" hidden></p><div id="voice-review" hidden><label for="voice-text">요청 내용을 확인하고 고쳐주세요</label><textarea id="voice-text" maxlength="800"></textarea><p id="voice-action"></p><div class="choices"><button class="primary" id="voice-confirm">이 내용으로 계속</button><button class="secondary" id="voice-retry">다시 말하기</button><button class="secondary" id="voice-cancel">취소</button></div></div><div id="voice-next" hidden><button class="secondary wide" id="voice-card-fallback">무료 인사 카드로 만들기</button></div><details><summary>음성 사용 안내</summary><p>마이크를 누를 때만 듣습니다. 첫 사용 시 브라우저에서 마이크 사용을 허용해주세요. 듣기 멈추기를 누르면 멈춰요. 목소리는 브라우저의 음성 인식 서비스로 전송될 수 있습니다. 인식한 내용을 확인한 뒤에만 진행합니다. AI 그림·영상 생성은 이용 횟수가 차감될 수 있습니다.</p><p>“받는 이름을 서준으로 바꿔줘”, “이대로 카드 완성해줘”, “내 작품에 보관해줘”도 사용할 수 있어요. 마이크가 안 되면 글로 요청하기나 휴대폰 키보드의 마이크를 이용하세요.</p><label class="check-row"><input type="checkbox" id="voice-speak"> 안내를 소리로도 듣기</label><p>카카오톡·SNS에 자동 전송하지 않습니다. 공유창에서 앱과 받을 사람을 직접 선택하고 전송 결과를 확인해주세요.</p></details>';
+ panel.innerHTML='<div class="sg-voice-heading"><h2 id="voice-panel-title">말로 하기</h2><button type="button" class="primary" id="voice-start" aria-pressed="false">🎤 말로 하기</button></div><p class="sg-voice-steps">1. 마이크 누르기 → 2. 천천히 말하기 → 3. 내용 확인하기</p><p>“아침 인사 만들어줘”, “손녀 생일 카드 만들어줘”라고 말해보세요.</p><button type="button" class="secondary" id="voice-type">글로 요청하기</button><p id="command-voice-status" role="status" aria-live="polite">말하기가 어려우면 글로 요청하기를 눌러주세요.</p><p id="voice-transcript" aria-live="off" hidden></p><div id="voice-review" hidden><label for="voice-text">요청 내용을 확인하고 고쳐주세요</label><textarea id="voice-text" maxlength="800"></textarea><p id="voice-action"></p><div class="choices"><button class="primary" id="voice-confirm">이 내용으로 계속</button><button class="secondary" id="voice-retry">다시 말하기</button><button class="secondary" id="voice-cancel">취소</button></div></div><div id="voice-next" hidden><button class="secondary wide" id="voice-card-fallback">무료 인사 카드로 만들기</button></div><details><summary>음성 사용 안내</summary><p>마이크를 누를 때만 듣습니다. 첫 사용 시 브라우저에서 마이크 사용을 허용해주세요. 듣기 멈추기를 누르면 멈춰요. 목소리는 브라우저의 음성 인식 서비스로 전송될 수 있습니다. 인식한 내용을 확인한 뒤에만 진행합니다. AI 그림·영상 생성은 이용 횟수가 차감될 수 있습니다.</p><p>“받는 이름을 서준으로 바꿔줘”, “이대로 카드 완성해줘”, “내 작품에 보관해줘”도 사용할 수 있어요. 마이크가 안 되면 글로 요청하기나 휴대폰 키보드의 마이크를 이용하세요.</p><label class="check-row"><input type="checkbox" id="voice-speak"> 안내를 소리로도 듣기</label><p>카카오톡·SNS에 자동 전송하지 않습니다. 공유창에서 앱과 받을 사람을 직접 선택하고 전송 결과를 확인해주세요.</p></details>';
  document.querySelector('#app').before(panel);
  const shortcut=document.createElement('button');shortcut.type='button';shortcut.id='voice-shortcut';shortcut.className='primary sg-voice-shortcut';shortcut.textContent='마이크 · 말로 요청';shortcut.setAttribute('aria-pressed','false');document.body.append(shortcut);
+ const home=document.createElement('span');home.hidden=true;panel.before(home);let voiceDialog=null;
  const el=id=>document.getElementById(id),Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
  let recognition=null,listening=false,pending=null,executing=false,spoken='',timer,epoch=0;
  const occasions=[[/졸업|입학/,'school'],[/결혼기념/,'anniversary'],[/(손주|손자|손녀).*생일|생일.*(손주|손자|손녀)/,'grandchild'],[/생일|생신/,'birthday'],[/감사|고마|고맙/,'thanks'],[/아침/,'morning'],[/주말/,'weekend'],[/새해|설날/,'newyear'],[/추석|한가위/,'chuseok'],[/응원/,'support'],[/축하/,'congrats']];
@@ -36,7 +37,7 @@ window.initSeniorgramVoice=function(ctx){
   el('voice-action').textContent=value?(labels[command.kind]||'내용 확인하기'):'만들고 싶은 내용을 적어주세요.';
   el('voice-confirm').disabled=!value||listening||executing||command.kind==='confirm';
  }
- function clearReview(){pending=null;el('voice-review').hidden=true;el('voice-next').hidden=true;}
+ function clearReview(){pending=null;el('voice-review').hidden=true;el('voice-next').hidden=true;if(voiceDialog?.open)voiceDialog.close();}
  function stop(){
   epoch++;clearTimeout(timer);spoken='';
   if(recognition){recognition.onend=recognition.onresult=recognition.onstart=recognition.onerror=null;try{recognition.abort()}catch{}recognition=null}
@@ -65,14 +66,17 @@ window.initSeniorgramVoice=function(ctx){
    }
    if(command.kind==='field'){say(ctx.updateCard?.(command.field,command.value)||'카드를 먼저 열고 이름이나 문구를 바꿔주세요.');clearReview();return}
    if(command.kind==='finish'){const done=await ctx.finishCard?.();say(done?'카드가 완성됐어요. 이름과 문구를 확인하고 “내 작품에 보관해줘”라고 말씀하세요.':'먼저 편집할 카드를 열어주세요. 준비된 카드 디자인을 골라도 좋아요.');clearReview();return}
+   if(command.kind==='save'&&ctx.localMedia?.()){const item=ctx.localMedia();window.seniorgramMedia.openSave(item.blob,item.name);clearReview();say('이 작품은 보관함에 있어요. 파일을 따로 저장하려면 열린 안내의 저장 버튼을 눌러주세요.');return}
    if(command.kind==='save'){const done=await ctx.keepCurrent?.();say(done?'이 브라우저의 내 작품에 보관했어요. 다른 기기와 자동으로 옮겨지지는 않아요.':'완성한 카드를 먼저 열어주세요. 보관이 안 되면 파일 저장 버튼을 이용하세요.');clearReview();return}
+   if(command.kind==='save-help'&&ctx.localMedia?.()){const item=ctx.localMedia();window.seniorgramMedia.openSave(item.blob,item.name);clearReview();say('이 작품의 파일 저장 안내를 열었어요. 저장 버튼을 직접 눌러주세요.');return}
    if(command.kind==='save-help'){if(ctx.saveHelp?.()){say('사진첩 저장 방법을 열었어요. 안내에 따라 직접 저장해주세요.')}else say('카드를 먼저 완성해주세요.');clearReview();return}
    if(command.kind==='help'){document.querySelector('#sg-learn-open')?.click();clearReview();say('처음 배우기 안내를 열었어요. 카드 만들기부터 따라 해보세요.');return}
    if(command.kind==='home'){ctx.setPage('home');clearReview();say('처음 화면을 열었어요. 인사 카드나 내 작품을 골라주세요.');return}
    if(command.kind==='gallery'){ctx.setPage('gallery');clearReview();say('내 작품을 열었어요. 원하는 작품의 열기 · 저장 · 공유를 눌러주세요.');return}
    if(command.kind==='share'){
-    const aiMedia=document.querySelector('#ai-result video,#ai-result img');let blob=null,name='시니어그램.png';
-    if(aiMedia){const response=await fetch(aiMedia.src);if(!response.ok)throw Error('완성 파일을 불러오지 못했어요.');blob=await response.blob();if(aiMedia.tagName==='VIDEO')name='시니어그램.mp4'}
+    const aiMedia=document.querySelector('#ai-result video,#ai-result img'),local=ctx.localMedia?.();let blob=null,name='시니어그램.png';
+    if(local){blob=local.blob;name=local.name}
+    else if(aiMedia){const response=await fetch(aiMedia.src);if(!response.ok)throw Error('완성 파일을 불러오지 못했어요.');blob=await response.blob();if(aiMedia.tagName==='VIDEO')name='시니어그램.mp4'}
     else if(ctx.page==='result'){const video=document.querySelector('#video-actions')&&!document.querySelector('#video-actions').hidden;blob=video?ctx.videoBlob:ctx.pngBlob;if(video)name='시니어그램.'+ctx.videoExt}
     if(!blob){say('보낼 작품을 먼저 완성하고 열어주세요. 보관함 작품은 열린 창의 휴대폰 공유창 열기를 누르세요.');return}
     ctx.sharingDialog(command.channel,blob,name,ctx.currentPostId);clearReview();say(ctx.shareChannels[command.channel].name+' 공유를 준비했어요. 공유창 열기를 누르고 받을 사람을 직접 골라주세요. 아직 전송되지 않았어요.');return;
@@ -114,5 +118,13 @@ window.initSeniorgramVoice=function(ctx){
  document.addEventListener('visibilitychange',()=>{if(document.hidden){const wasListening=listening;stop();window.speechSynthesis?.cancel();if(wasListening)say('화면을 벗어나 듣기를 멈췄어요. 다시 마이크를 누르면 들을 수 있어요.')}});
  window.addEventListener('pagehide',stop);
  window.addEventListener('sg-page-changed',()=>{if(!executing){stop();clearReview()}});
+ function openVoiceDialog(){
+  if(voiceDialog?.open)return;
+  stop();clearReview();const dialog=document.createElement('dialog');voiceDialog=dialog;dialog.className='sg-member-dialog sg-voice-dialog';dialog.setAttribute('aria-labelledby','voice-panel-title');
+  const close=document.createElement('button');close.className='secondary';close.textContent='음성 창 닫기';close.onclick=()=>dialog.close();dialog.append(close,panel);
+  dialog.addEventListener('close',()=>{stop();pending=null;el('voice-review').hidden=true;el('voice-next').hidden=true;if(home.parentNode)home.parentNode.insertBefore(panel,home.nextSibling);dialog.remove();if(voiceDialog===dialog)voiceDialog=null},{once:true});
+  document.body.append(dialog);dialog.showModal();say('열린 작품을 말로 저장하거나 공유할 수 있어요. 마이크 또는 글로 요청하기를 눌러주세요.');
+ }
+ window.seniorgramVoice={open:openVoiceDialog,close:()=>voiceDialog?.close(),stop};
  window.seniorgramVoiceClassify=classify;
 };

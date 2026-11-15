@@ -34,3 +34,5 @@ select{width:100%;min-height:54px;padding:12px;border:1px solid #abbfb0;border-r
 
 /* Keep the primary action above the fixed navigation and microphone launcher. */
 @media(max-width:700px){.form-panel #make{bottom:calc(160px + env(safe-area-inset-bottom))}}
+
+.sg-media-save img{display:block;width:100%;max-height:50dvh;object-fit:contain;margin:16px auto}.sg-media-save .wide{display:block;margin:12px 0}.sg-voice-dialog>.sg-voice-panel{margin:18px 0 0;padding:16px;max-width:100%;box-sizing:border-box}.sg-voice-dialog .sg-voice-heading{flex-wrap:wrap}.sg-voice-dialog .sg-voice-heading button{width:100%}.sg-local-viewer [data-voice],.sg-local-viewer [data-save-help]{margin-top:12px}
