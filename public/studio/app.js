@@ -171,13 +171,14 @@ function aiStudio(mode){
 }
 async function galleryPage(){
  const token=aiViewToken;
- app.innerHTML='<button class="back" id="gallery-back">← 처음으로</button><h1>내가 만든 작품</h1><section aria-labelledby="local-works-title"><h2 id="local-works-title">이 기기에 보관한 작품</h2><p>로그인 없이 다시 열어 저장하고 공유하세요. 이 브라우저를 함께 쓰는 사람도 볼 수 있어요. 다른 기기와 동기화되지 않으며 브라우저 데이터를 지우면 사라져요. 중요한 작품은 파일로도 저장하세요.</p><div id="local-works"></div></section><section class="sg-cloud-works" aria-labelledby="cloud-works-title"><h2 id="cloud-works-title">내 계정의 AI 작품</h2><p>로그인 계정에서 만든 AI 그림·영상과 진행 상황이에요.</p><div id="my-jobs" class="template-grid"><p>연결 상태를 확인하고 있어요…</p></div></section>';
+ app.innerHTML='<button class="back" id="gallery-back">← 처음으로</button><h1>내가 만든 작품</h1><section aria-labelledby="local-works-title"><h2 id="local-works-title">이 기기에 보관한 작품</h2><p>로그인 없이 다시 열어 저장하고 공유하세요. 이 브라우저를 함께 쓰는 사람도 볼 수 있어요. 다른 기기와 동기화되지 않으며 브라우저 데이터를 지우면 사라져요. 중요한 작품은 파일로도 저장하세요.</p><div id="local-works"></div></section><section class="sg-cloud-works" aria-labelledby="cloud-works-title"><h2 id="cloud-works-title">내 계정의 AI 작품</h2><p>로그인 계정에서 만든 AI 그림·영상과 진행 상황이에요.</p><div id="my-jobs"><p>연결 상태를 확인하고 있어요…</p></div></section>';
  $('#gallery-back').onclick=()=>setPage('home');localWorks.render($('#local-works'));
  try{
   const status=await sgRequest('status');
   if(token!==aiViewToken||page!=='gallery')return;
   if(status.database===false){$('#my-jobs').textContent='계정 보관함은 연결 준비 중이에요. 위의 이 기기 보관함을 이용해주세요.';return}
   const d=await sgRequest('jobs');if(token!==aiViewToken||page!=='gallery')return;
+  $('#my-jobs').classList.toggle('template-grid',d.jobs.length>0);
   $('#my-jobs').innerHTML=d.jobs.length?d.jobs.map(j=>`<article class="sg-post">${j.fileUrl&&j.kind==='image'?`<img src="${escapeHTML(j.fileUrl)}" alt="${escapeHTML(j.prompt)}" loading="lazy">`:''}<p>${j.kind==='video'?'AI 영상':'AI 그림'} · ${jobLabel[j.state]||'확인 중'}</p><h2>${escapeHTML(j.prompt)}</h2><button class="primary wide" data-open-job="${j.id}">${j.state==='succeeded'?'작품 열기':'진행 상황 보기'}</button></article>`).join(''):'<p>아직 만든 AI 작품이 없어요.</p>';
   app.querySelectorAll('[data-open-job]').forEach(b=>b.onclick=()=>{const j=d.jobs.find(x=>x.id===b.dataset.openJob);writeCardLocal(jobDraftKey(j.kind),{prompt:j.prompt,requestId:j.requestId,jobId:j.id});setPage(j.kind==='video'?'ai-video':'ai-image')});
  }catch(e){if(token===aiViewToken&&$('#my-jobs')){if(e.status===401)showSignIn($('#my-jobs'));else $('#my-jobs').textContent=e.message}}
