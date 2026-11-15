@@ -4,7 +4,7 @@ const {product}=read('server/product/handler.ts'),{hashToken}=read('server/comme
 (async()=>{
  const db=new PGlite();for(const file of fs.readdirSync('migrations/postgres').filter(f=>f.endsWith('.sql')).sort())await db.exec(fs.readFileSync('migrations/postgres/'+file,'utf8'));
  const ids=[randomUUID(),randomUUID()],tokens=['a'.repeat(43),'b'.repeat(43)];for(let i=0;i<2;i++){await db.query('INSERT INTO sg_accounts(id,kakao_id,nickname) VALUES($1,$2,$3)',[ids[i],String(i+1),'회원'+i]);await db.query("INSERT INTO sg_sessions(hash,account_id,expires_at) VALUES($1,$2,now()+interval '1 day')",[hashToken(tokens[i]),ids[i]])}
- const env={APP_ORIGIN:'https://jini-seniorgram.netlify.app',DATABASE_URL:'test-only',PRODUCT_SCHEMA_VERSION:'3',MEDIA_STORAGE_ENABLED:'true',GENERATION_ENABLED:'true',GENERATION_DAILY_LIMIT:'10',OPENAI_API_KEY:'fake',TRIAL_ENABLED:'true',COMMUNITY_ENABLED:'true'};
+ const env={APP_ORIGIN:'https://jini-seniorgram.netlify.app',DATABASE_URL:'test-only',PRODUCT_SCHEMA_VERSION:'3',KAKAO_PUBLIC_SIGNUP_ENABLED:'true',MEDIA_STORAGE_ENABLED:'true',GENERATION_ENABLED:'true',GENERATION_DAILY_LIMIT:'10',OPENAI_API_KEY:'fake',TRIAL_ENABLED:'true',COMMUNITY_ENABLED:'true'};
  let mode='success',creates=0,moderations=0;const files=new Map(),png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD1sAAAAASUVORK5CYII=','base64');
  const d={env:k=>env[k],query:(q,v)=>db.query(q,v),transaction:fn=>db.transaction(tx=>fn((q,v)=>tx.query(q,v))),files:{put:async(k,b)=>files.set(k,new Uint8Array(b).buffer),get:async k=>files.get(k)||null,delete:async k=>files.delete(k)},fetch:async(url,init)=>{
   if(url.endsWith('/moderations')){moderations++;return Response.json({results:[{flagged:mode==='blocked'}]})}

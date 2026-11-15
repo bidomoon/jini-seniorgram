@@ -8,7 +8,7 @@ const {commerce}=read('server/commerce/handler.ts'),{product}=read('server/produ
  const origin='https://jini-seniorgram.netlify.app',token='a'.repeat(43),id=randomUUID();
  await db.query('INSERT INTO sg_accounts(id,kakao_id,nickname) VALUES($1,$2,$3)',[id,'12345','회원']);
  await db.query("INSERT INTO sg_sessions(hash,account_id,expires_at) VALUES($1,$2,now()+interval '1 day')",[hashToken(token),id]);
- const env={APP_ORIGIN:origin,DATABASE_URL:'test-only',PRODUCT_SCHEMA_VERSION:'3',MEDIA_STORAGE_ENABLED:'true',GENERATION_ENABLED:'true',GENERATION_DAILY_LIMIT:'10',OPENAI_API_KEY:'fake',TRIAL_ENABLED:'true',KAKAO_LOGIN_ENABLED:'true',KAKAO_REST_API_KEY:'test',KAKAO_CLIENT_SECRET:'test'};
+ const env={APP_ORIGIN:origin,DATABASE_URL:'test-only',PRODUCT_SCHEMA_VERSION:'3',KAKAO_PUBLIC_SIGNUP_ENABLED:'true',MEDIA_STORAGE_ENABLED:'true',GENERATION_ENABLED:'true',GENERATION_DAILY_LIMIT:'10',OPENAI_API_KEY:'fake',TRIAL_ENABLED:'true',KAKAO_LOGIN_ENABLED:'true',KAKAO_REST_API_KEY:'test',KAKAO_CLIENT_SECRET:'test'};
  let networkCalls=0;
  const d={env:k=>env[k],query:(q,v)=>db.query(q,v),transaction:fn=>db.transaction(tx=>fn((q,v)=>tx.query(q,v))),files:{put:async()=>{},get:async()=>null,delete:async()=>{}},fetch:async()=>{networkCalls++;throw Error('Simulated provider timeout');}};
  const req=(url,body,cookie='__Host-sg-session='+token)=>new Request(origin+url,{method:body?'POST':'GET',headers:{cookie,...(body?{'content-type':'application/json',origin}:{})},body:body?JSON.stringify(body):undefined});

@@ -1,9 +1,12 @@
 import {randomUUID} from 'node:crypto';
 import {cookieValue,hashToken} from '../commerce/security';
 import {Dependencies,Query,ProductError,koreanDay} from './types';
-export async function account(request:Request,d:Pick<Dependencies,'query'>){
+import {admission} from '../commerce/admission';
+export async function account(request:Request,d:Pick<Dependencies,'query'|'env'>){
  const token=cookieValue(request,'__Host-sg-session');if(!token)return null;
- return (await d.query('SELECT a.id,a.nickname FROM sg_sessions s JOIN sg_accounts a ON a.id=s.account_id WHERE s.hash=$1 AND s.expires_at>now() AND a.deleted_at IS NULL',[hashToken(token)])).rows[0]||null;
+ const access=admission(d.env);if(access.mode==='closed')return null;
+ const row=(await d.query('SELECT a.id,a.nickname,a.kakao_id FROM sg_sessions s JOIN sg_accounts a ON a.id=s.account_id WHERE s.hash=$1 AND s.expires_at>now() AND a.deleted_at IS NULL',[hashToken(token)])).rows[0];
+ return row&&access.allows(row.kakao_id)?{id:row.id,nickname:row.nickname}:null;
 }
 export async function usage(q:Query,id:string){
  const rows=(await q('SELECT source,image_limit,image_used,video_limit,video_used,ends_at FROM sg_entitlements WHERE account_id=$1 AND revoked_at IS NULL AND starts_at<=now() AND (ends_at IS NULL OR ends_at>now()) ORDER BY ends_at NULLS LAST',[id])).rows;

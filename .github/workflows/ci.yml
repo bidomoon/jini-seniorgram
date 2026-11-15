@@ -48,6 +48,8 @@ jobs:
           node tests/play-restore.cjs
           node tests/commerce.cjs
           node tests/accounts.cjs
+          node tests/login-admission.cjs
+          node tests/cleanup.cjs
           node tests/database-access.cjs
           node tests/product.cjs
           node tests/api.cjs
