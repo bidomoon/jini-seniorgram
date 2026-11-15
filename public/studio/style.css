@@ -31,3 +31,6 @@ select{width:100%;min-height:54px;padding:12px;border:1px solid #abbfb0;border-r
 @media(max-width:600px){.sg-voice-panel .choices{display:grid;grid-template-columns:1fr}.sg-voice-panel .choices button{width:100%}.sg-voice-panel #voice-type{width:100%}}
 
 .sg-voice-shortcut{position:fixed;right:16px;bottom:calc(88px + env(safe-area-inset-bottom));z-index:31;min-height:56px;max-width:calc(100% - 32px);box-shadow:0 4px 16px #143d3233;font-size:18px}body{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+
+/* Keep the primary action above the fixed navigation and microphone launcher. */
+@media(max-width:700px){.form-panel #make{bottom:calc(160px + env(safe-area-inset-bottom))}}
