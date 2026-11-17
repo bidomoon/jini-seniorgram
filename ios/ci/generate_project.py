@@ -35,7 +35,10 @@ def configs(name, common):
     for mode in ['Debug','Release']:
         values = common.copy()
         values.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if mode == 'Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if mode == 'Debug' else 'dwarf-with-dsym'})
-        if mode == 'Debug': values['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = 'DEBUG'
+        if mode == 'Debug':
+            values['SWIFT_ACTIVE_COMPILATION_CONDITIONS'] = 'DEBUG'
+            values['ENABLE_TESTABILITY'] = 'YES'
+            values['ONLY_ACTIVE_ARCH'] = 'YES'
         keys.append(obj('config:' + name + ':' + mode, f'isa = XCBuildConfiguration; buildSettings = {{{settings(values)}}}; name = {mode};'))
     return obj('config-list:' + name, f'isa = XCConfigurationList; buildConfigurations = ({",".join(keys)},); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;')
 project_configs = configs('project',project_common)
