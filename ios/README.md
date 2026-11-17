@@ -23,7 +23,7 @@ SwiftUI 카드 제작, 선택 사진 가져오기, 1080 PNG 출력, 암호화된
 
 `.github/workflows/ios.yml`에서 표준 macOS runner로 Xcode 26 이상을 확인하고, 실제 프로젝트를 시뮬레이터에서 빌드·시험한다. 8개 단위 시험은 한국어 요청 분류·문자 제한·1080 PNG·재실행 보관·중복·한도·손상 인덱스 보호·개별 삭제를 점검한다. 2개 UI 시험은 카드 작성→보관→재실행→재열기와 마이크 자동 시작 방지를 점검한다. 실기기용 Release도 **서명 없이 컴파일**한다. 이 작업은 서명된 IPA나 TestFlight 빌드가 아니다.
 
-실제 실행 결과는 Actions 기록을 기준으로 하며, 이 문서의 시험 목록 자체가 성공을 뜻하지 않는다. 마이크 인식 정확도, 실제 사진 선택·Photos 저장, 카카오톡 최종 수신, 작은 iPhone·큰 글씨·VoiceOver는 실기기 확인이 필요하다.
+최종 [Actions 실행 #3](https://github.com/bidomoon/jini-seniorgram/actions/runs/44115543351)에서 Xcode 26.6 / iPhone 17 Pro / iOS 26.5로 단위 8개·UI 2개가 실패 0으로 통과했다. 서명 없는 iPhone 기기용 Release 컴파일도 성공했다. 증거는 `AppStore/verification.json`과 원본 화면 3장(`AppStore/screenshots/ko-KR`)이다. 마이크 인식 정확도, 실제 사진 선택·Photos 저장, 카카오톡 최종 수신, 작은 iPhone·큰 글씨·VoiceOver는 실기기 확인이 필요하다.
 
 ## Mac에서 서명하고 TestFlight에 올리기
 
@@ -52,6 +52,7 @@ SwiftUI 카드 제작, 선택 사진 가져오기, 1080 PNG 출력, 암호화된
 - [On-device speech](https://developer.apple.com/documentation/speech/sfspeechrecognitionrequest/requiresondevicerecognition): 기기 지원 확인 후 기기 내 인식만 요구.
 - [Privacy manifest TN3183](https://developer.apple.com/documentation/technotes/tn3183-adding-required-reason-api-entries-to-your-privacy-manifest): 앱 전용 글씨 설정에 UserDefaults CA92.1 선언.
 - [Apple 스크린샷 규격](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications): 등록 화면의 필수 중형 iPhone 슬롯과 대조했다.
+- [Xcode Cloud 최초 연결](https://developer.apple.com/documentation/xcode/configuring-your-first-xcode-cloud-workflow): 최초 프로젝트 연결은 Mac의 Xcode에서 시작한다.
 - [지니팀 공개 연락처](https://jinimarketing.com/): 지원용 이메일·전화·운영자 확인. 문의 회신 속도는 임의로 보장하지 않는다.
 
 한국어 등록 문구는 `AppStore/ko-KR/metadata.json`에 있다. 개인 인증서·프로비저닝 프로필·App Store Connect API 비밀키는 저장소에 넣지 않는다.

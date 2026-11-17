@@ -1,0 +1,48 @@
+{
+  "commit": "23cd633d290f81ad67046073c656cd03b28a78af",
+  "workflowRun": 44115543351,
+  "url": "https://github.com/bidomoon/jini-seniorgram/actions/runs/44115543351",
+  "xcode": "26.6",
+  "simulator": "iPhone 17 Pro / iOS 26.5",
+  "unitTests": {
+    "passed": 8,
+    "failed": 0
+  },
+  "uiTests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "unsignedDeviceReleaseBuild": "success",
+  "signedArchiveUploaded": false,
+  "testFlightUploaded": false,
+  "appStoreReviewSubmitted": false,
+  "screenshots": [
+    {
+      "path": "ios/AppStore/screenshots/ko-KR/01-home.png",
+      "sourceAttachment": "E2B8A7C2-C213-431C-883D-1FD868186D67.png",
+      "width": 1206,
+      "height": 2622,
+      "mode": "RGB",
+      "sha256": "099d2d3e75f4e495546fc33259c6720e59c1d268f35c59f3f94bcb422021ea12",
+      "contentModified": false
+    },
+    {
+      "path": "ios/AppStore/screenshots/ko-KR/02-completed-card.png",
+      "sourceAttachment": "760C3832-7BA2-4F61-9E0B-59CC33129A7A.png",
+      "width": 1206,
+      "height": 2622,
+      "mode": "RGB",
+      "sha256": "5dddbe120f64a61c33a39dd7d65557ea9219f31d5384ebf910bc0f684c2f4ea7",
+      "contentModified": false
+    },
+    {
+      "path": "ios/AppStore/screenshots/ko-KR/03-voice-input.png",
+      "sourceAttachment": "9887598B-FC6A-440C-BB7B-AEE1296E8F72.png",
+      "width": 1206,
+      "height": 2622,
+      "mode": "RGB",
+      "sha256": "2680e3fe441da46d338d39d90a35b93fa20618046ed4d1825b9a70f76002f7f5",
+      "contentModified": false
+    }
+  ]
+}
