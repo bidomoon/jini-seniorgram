@@ -1,5 +1,5 @@
-const CACHE='seniorgram-shell-v26';
-const FILES=['./offline.html','./style.css?v=19','./assets/icon-192.png'];
+const CACHE='seniorgram-shell-v27';
+const FILES=['./offline.html','./style.css?v=27','./assets/icon-192.png'];
 const PUBLIC_FILES=new Set(FILES.map(path=>new URL(path,self.location.href).href));
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES))));
 self.addEventListener('message',event=>{if(event.data?.type==='SG_ACTIVATE_UPDATE')self.skipWaiting()});

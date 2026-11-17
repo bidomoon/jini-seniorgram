@@ -2,7 +2,7 @@
 const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
 function setup({supported=true,constructorFails=false,startFails=false,starts=true}={}){
  const nodes=new Map(),timers=new Map(),events=new Map();let serial=0,last,created=0;
- const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',textContent:'',hidden:false,disabled:false,checked:false,attrs:{},setAttribute(k,v){this.attrs[k]=v},focus(){},before(){},dispatchEvent(){},scrollIntoView(){}});return nodes.get(id)};
+ const node=id=>{if(!nodes.has(id))nodes.set(id,{value:'',textContent:'',hidden:false,disabled:false,checked:false,attrs:{},setAttribute(k,v){this.attrs[k]=v},focus(){},append(){},before(){},dispatchEvent(){},scrollIntoView(){}});return nodes.get(id)};
  class Recognition{constructor(){if(constructorFails)throw Error('unsupported');last=this}start(){if(startFails)throw Error('start');if(starts)this.onstart?.()}abort(){this.aborted=true}}
  const doc={body:{append(){}},hidden:false,createElement:()=>node('panel'),getElementById:node,querySelector:s=>s==='#app'?node('app'):s==='#ai-prompt'?node('prompt'):s==='#ai-generate'?node('generate'):null,addEventListener:(name,fn)=>events.set('doc:'+name,fn)};
  const window={SpeechRecognition:supported?Recognition:undefined,addEventListener:(name,fn)=>events.set(name,fn)};

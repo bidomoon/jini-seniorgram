@@ -2,7 +2,7 @@
 window.initSeniorgramVoice=function(ctx){
  const panel=document.createElement('section');panel.className='sg-voice-panel';panel.setAttribute('aria-label','말로 만들기');
  panel.innerHTML='<div class="sg-voice-heading"><h2 id="voice-panel-title">말로 하기</h2><button type="button" class="primary" id="voice-start" aria-pressed="false">🎤 말로 하기</button></div><p class="sg-voice-steps">1. 마이크 누르기 → 2. 천천히 말하기 → 3. 내용 확인하기</p><p>“아침 인사 만들어줘”, “손녀 생일 카드 만들어줘”라고 말해보세요.</p><button type="button" class="secondary" id="voice-type">글로 요청하기</button><p id="command-voice-status" role="status" aria-live="polite">말하기가 어려우면 글로 요청하기를 눌러주세요.</p><p id="voice-transcript" aria-live="off" hidden></p><div id="voice-review" hidden><label for="voice-text">요청 내용을 확인하고 고쳐주세요</label><textarea id="voice-text" maxlength="800"></textarea><p id="voice-action"></p><div class="choices"><button class="primary" id="voice-confirm">이 내용으로 계속</button><button class="secondary" id="voice-retry">다시 말하기</button><button class="secondary" id="voice-cancel">취소</button></div></div><div id="voice-next" hidden><button class="secondary wide" id="voice-card-fallback">무료 인사 카드로 만들기</button></div><details><summary>음성 사용 안내</summary><p>마이크를 누를 때만 듣습니다. 첫 사용 시 브라우저에서 마이크 사용을 허용해주세요. 듣기 멈추기를 누르면 멈춰요. 목소리는 브라우저의 음성 인식 서비스로 전송될 수 있습니다. 인식한 내용을 확인한 뒤에만 진행합니다. AI 그림·영상 생성은 이용 횟수가 차감될 수 있습니다.</p><p>“받는 이름을 서준으로 바꿔줘”, “이대로 카드 완성해줘”, “내 작품에 보관해줘”도 사용할 수 있어요. 마이크가 안 되면 글로 요청하기나 휴대폰 키보드의 마이크를 이용하세요.</p><label class="check-row"><input type="checkbox" id="voice-speak"> 안내를 소리로도 듣기</label><p>카카오톡·SNS에 자동 전송하지 않습니다. 공유창에서 앱과 받을 사람을 직접 선택하고 전송 결과를 확인해주세요.</p></details>';
- document.querySelector('#app').before(panel);
+ const dock=document.createElement('div');dock.className='sg-voice-dock';dock.hidden=true;dock.append(panel);document.body.append(dock);
  const shortcut=document.createElement('button');shortcut.type='button';shortcut.id='voice-shortcut';shortcut.className='primary sg-voice-shortcut';shortcut.textContent='마이크 · 말로 요청';shortcut.setAttribute('aria-pressed','false');document.body.append(shortcut);
  const home=document.createElement('span');home.hidden=true;panel.before(home);let voiceDialog=null;
  const el=id=>document.getElementById(id),Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -10,6 +10,7 @@ window.initSeniorgramVoice=function(ctx){
  const occasions=[[/졸업|입학/,'school'],[/결혼기념/,'anniversary'],[/(손주|손자|손녀).*생일|생일.*(손주|손자|손녀)/,'grandchild'],[/생일|생신/,'birthday'],[/감사|고마|고맙/,'thanks'],[/아침/,'morning'],[/주말/,'weekend'],[/새해|설날/,'newyear'],[/추석|한가위/,'chuseok'],[/응원/,'support'],[/축하/,'congrats']];
  function say(text){
   el('command-voice-status').textContent=text;
+  if(!voiceDialog?.open)ctx.toast?.(text);
   if(el('voice-speak').checked&&window.speechSynthesis&&!listening){try{window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang='ko-KR';window.speechSynthesis.speak(utterance)}catch{}}
  }
  function classify(text){
@@ -112,7 +113,7 @@ window.initSeniorgramVoice=function(ctx){
    recognition.start();
   }catch{stop();say('마이크를 시작하지 못했어요. 다시 누르거나 글로 요청하기를 이용하세요.')}
  }
- shortcut.onclick=()=>{panel.scrollIntoView?.({block:'start'});start()};
+ shortcut.onclick=()=>{openVoiceDialog();start()};
  el('voice-text').oninput=()=>{pending={kind:'input'};el('voice-next').hidden=true;describe()};el('voice-confirm').onclick=execute;el('voice-cancel').onclick=cancel;el('voice-type').onclick=typeRequest;el('voice-start').onclick=start;el('voice-retry').onclick=start;
  el('voice-card-fallback').onclick=()=>{stop();clearReview();ctx.setPage('templates');say('무료 카드 디자인을 골라주세요. AI 생성과 로그인 없이 만들 수 있어요.')};
  document.addEventListener('visibilitychange',()=>{if(document.hidden){const wasListening=listening;stop();window.speechSynthesis?.cancel();if(wasListening)say('화면을 벗어나 듣기를 멈췄어요. 다시 마이크를 누르면 들을 수 있어요.')}});
@@ -123,7 +124,7 @@ window.initSeniorgramVoice=function(ctx){
   stop();clearReview();const dialog=document.createElement('dialog');voiceDialog=dialog;dialog.className='sg-member-dialog sg-voice-dialog';dialog.setAttribute('aria-labelledby','voice-panel-title');
   const close=document.createElement('button');close.className='secondary';close.textContent='음성 창 닫기';close.onclick=()=>dialog.close();dialog.append(close,panel);
   dialog.addEventListener('close',()=>{stop();pending=null;el('voice-review').hidden=true;el('voice-next').hidden=true;if(home.parentNode)home.parentNode.insertBefore(panel,home.nextSibling);dialog.remove();if(voiceDialog===dialog)voiceDialog=null},{once:true});
-  document.body.append(dialog);dialog.showModal();say('열린 작품을 말로 저장하거나 공유할 수 있어요. 마이크 또는 글로 요청하기를 눌러주세요.');
+  document.body.append(dialog);dialog.showModal();say(ctx.localMedia?.()?'열린 작품을 말로 저장하거나 공유할 수 있어요. 마이크 또는 글로 요청하기를 눌러주세요.':'마이크를 누르고 “아침 인사 만들어줘”라고 말씀해보세요. 글로 요청하기를 눌러 적어도 괜찮아요.');
  }
  window.seniorgramVoice={open:openVoiceDialog,close:()=>voiceDialog?.close(),stop};
  window.seniorgramVoiceClassify=classify;
