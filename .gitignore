@@ -57,3 +57,11 @@ android/local.properties
 android/app/src/main/res/drawable/app_icon.png
 *.jks
 *.keystore
+
+# iOS build output and private signing material
+ios/DerivedData/
+ios/DeviceBuild/
+ios/artifacts/
+**/xcuserdata/
+*.p12
+*.mobileprovision
