@@ -1,0 +1,14 @@
+{
+  "name": "시니어그램",
+  "subtitle": "마음을 전하는 쉬운 인사 카드",
+  "promotionalText": "안부·생일·감사·응원 카드를 이름과 사진으로 꾸며보세요. 큰 글씨와 쉬운 순서로 만들고, 사진 앱에 저장하거나 소중한 사람에게 나눌 수 있어요.",
+  "description": "시니어그램은 마음을 담은 인사 카드를 쉽게 만드는 앱입니다.\n\n안부 인사, 생일 축하, 감사 인사, 따뜻한 응원 중 하나를 골라 받는 이름과 보내는 분을 적어보세요. 준비된 문구와 네 가지 분위기를 이용하고, 내 사진을 넣어 나만의 카드를 만들 수 있어요.\n\n• 로그인 없이 바로 카드 만들기\n• 큰 글씨와 간단한 순서\n• 이름·제목·문구·사진·분위기 바꾸기\n• 1080 × 1080 이미지로 카드 완성\n• 내 작품에 보관하고 다시 열기\n• iPhone 사진 앱에 저장하기\n• iOS 공유창으로 카카오톡·메시지 등 설치된 앱에 공유하기\n\n‘서준에게 생일 카드 만들어줘’처럼 말로 시작할 수도 있어요. 한국어 기기 내 음성 인식을 지원하는 iPhone과 마이크·음성 인식 권한이 필요합니다. 지원하지 않는 경우에는 글로 입력하거나 카드 종류를 고르면 됩니다. 이 음성 기능은 준비된 카드 종류를 고르는 입력 기능입니다.\n\n카드의 사진과 문구는 iPhone에서 처리하며 운영 서버에 업로드하지 않습니다. 기기 보관함은 최대 50개·100MB이며 다른 기기와 자동 동기화하지 않습니다. 중요한 작품은 사진 앱에도 저장해주세요.\n\nAI 그림·영상 생성, 회원 계정, 공개 피드, 유료 구독은 이 버전에서 제공하지 않습니다.\n\n도움말: https://jini-seniorgram.netlify.app/ios-support.html\n개인정보 안내: https://jini-seniorgram.netlify.app/ios-privacy.html",
+  "keywords": "인사,생일,감사,응원,안부,카드,사진,큰글씨,손주,가족,축하",
+  "supportURL": "https://jini-seniorgram.netlify.app/ios-support.html",
+  "privacyURL": "https://jini-seniorgram.netlify.app/ios-privacy.html",
+  "copyright": "2026 지니팀",
+  "version": "1.0.0",
+  "primaryCategory": "Graphics & Design",
+  "secondaryCategory": "Lifestyle",
+  "reviewNotes": "Native SwiftUI iPhone card maker. No sign-in, payment, public feed, AI generation, or server account is present in this build.\n\nReview flow: Make tab > green create button > enter recipient/sender > finish > save in local gallery > close > My Works tab > reopen. Cards render to 1080x1080 PNG. PhotosPicker imports only a selected photo. Photos saving requests add-only permission. Sharing uses UIActivityViewController.\n\nSpeech is optional. The microphone starts only after tapping the speech button and granting permissions. The recognizer must support Korean on-device recognition, and requiresOnDeviceRecognition is set true. If unavailable, use typed requests or occasion buttons. No audio upload or audio-file retention is implemented.\n\nLocal gallery data persists across app launches, is not synced, and is removable per item after confirmation. No third-party SDK or analytics. Native device validation and final store screenshots remain required before submission."
+}

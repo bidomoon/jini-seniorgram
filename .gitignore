@@ -65,3 +65,4 @@ ios/artifacts/
 **/xcuserdata/
 *.p12
 *.mobileprovision
+ios/ci/__pycache__/
