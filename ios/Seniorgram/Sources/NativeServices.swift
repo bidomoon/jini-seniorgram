@@ -64,9 +64,7 @@ final class NativeSpeech: ObservableObject {
         guard authorization == .authorized else {
             starting = false; notice = "음성 인식 권한이 필요해요. 설정에서 허용하거나 글로 적어주세요."; return
         }
-        let microphoneAllowed = await withCheckedContinuation { continuation in
-            AVAudioSession.sharedInstance().requestRecordPermission { continuation.resume(returning: $0) }
-        }
+        let microphoneAllowed = await AVAudioApplication.requestRecordPermission()
         guard epoch == permissionRun else { return }
         starting = false
         guard authorization == .authorized, microphoneAllowed else {

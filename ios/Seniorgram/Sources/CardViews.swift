@@ -100,7 +100,12 @@ struct VoiceDraftSheet: View {
         }
         .onReceive(speech.$transcript) { if !($0.isEmpty) { text = $0 } }
         .onChange(of: text) { _, value in if value.count > 800 { text = String(value.prefix(800)) } }
-        .onChange(of: scene) { _, value in if value != .active { speech.stop() } }
+        .onChange(of: scene) { _, value in
+            // Permission dialogs temporarily make the scene inactive. Keep their
+            // deliberate start request alive, but stop active recording on any
+            // interruption and cancel pending starts when entering background.
+            if value == .background || (value == .inactive && speech.listening) { speech.stop() }
+        }
         .onDisappear { speech.stop() }
     }
 }

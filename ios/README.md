@@ -38,7 +38,7 @@ SwiftUI 카드 제작, 선택 사진 가져오기, 1080 PNG 출력, 암호화된
 ## 심사 전 미완료 항목
 
 - 서명된 아카이브 검증·업로드 및 TestFlight/실기기 시험.
-- 실제 iPhone 화면에서 스크린샷 준비·업로드, 출시용 아이콘 최종 검수.
+- 실제 iPhone 화면에서 스크린샷 준비·업로드, 출시용 아이콘 최종 검수. 현재 App Store Connect 필수 슬롯은 Dynamic Island 중형 iPhone이며 세로 1179×2556 또는 1206×2622 PNG/JPEG를 허용한다. CI는 설치된 최신 iOS의 일반 Pro 기기를 우선 선택하며, 실제 출력 파일의 크기를 확인한 후 등록에 사용한다. 이미지를 늘리거나 가짜 화면으로 대체하지 않는다.
 - App Privacy 응답 최종 검토. 현재 코드 기준 운영자 자동 수집 없음; 문의는 사용자가 외부 이메일/전화로 직접 시작한다. 필드 선택과 공개 완료를 구분한다.
 - 연령 등급 설문: 공개 UGC·메신저·광고·구독 없음. 외부 공유창은 앱 내 공개 커뮤니티가 아니다. 최종 빌드와 대조하여 응답한다.
 - 지원 안내·개인정보 URL의 실배포 확인. 연락처는 지니팀 공식 홈페이지 공개 연락처를 사용한다(2026-11-17 확인).
@@ -51,6 +51,7 @@ SwiftUI 카드 제작, 선택 사진 가져오기, 1080 PNG 출력, 암호화된
 - [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/): 완결성, 최소 기능, 계정·결제·개인정보 요건.
 - [On-device speech](https://developer.apple.com/documentation/speech/sfspeechrecognitionrequest/requiresondevicerecognition): 기기 지원 확인 후 기기 내 인식만 요구.
 - [Privacy manifest TN3183](https://developer.apple.com/documentation/technotes/tn3183-adding-required-reason-api-entries-to-your-privacy-manifest): 앱 전용 글씨 설정에 UserDefaults CA92.1 선언.
+- [Apple 스크린샷 규격](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications): 등록 화면의 필수 중형 iPhone 슬롯과 대조했다.
 - [지니팀 공개 연락처](https://jinimarketing.com/): 지원용 이메일·전화·운영자 확인. 문의 회신 속도는 임의로 보장하지 않는다.
 
 한국어 등록 문구는 `AppStore/ko-KR/metadata.json`에 있다. 개인 인증서·프로비저닝 프로필·App Store Connect API 비밀키는 저장소에 넣지 않는다.

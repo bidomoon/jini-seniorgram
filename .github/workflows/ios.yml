@@ -39,7 +39,7 @@ jobs:
           devices = json.loads(subprocess.check_output(['xcrun','simctl','list','devices','available','-j']))['devices']
           candidates = [(runtime,d) for runtime,rows in devices.items() if 'iOS' in runtime for d in rows if d['name'].startswith('iPhone')]
           assert candidates, 'No installed iPhone simulator runtime'
-          runtime, device = sorted(candidates, key=lambda x:(x[0], 'Pro Max' in x[1]['name'], x[1]['name']), reverse=True)[0]
+          runtime, device = sorted(candidates, key=lambda x:(x[0], x[1]['name'].endswith(' Pro'), x[1]['name']), reverse=True)[0]
           with open(os.environ['GITHUB_ENV'],'a') as f: f.write('SG_SIMULATOR='+device['udid']+'\n')
           print(runtime, device['name'], device['udid'])
           subprocess.run(['xcrun','simctl','boot',device['udid']], check=False)
