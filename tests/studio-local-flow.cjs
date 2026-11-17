@@ -40,6 +40,9 @@ async function until(test){for(let i=0;i<100;i++){if(test())return;await tick()}
  const name=document.querySelector('#recipient');name.value='테스트 친구';name.oninput({target:name});
  await document.querySelector('#card-form').onsubmit({preventDefault(){}});
  assert(document.querySelector('#keep-image'),'finished card has keep action');
+ await until(()=>document.querySelector('#publish-community')?.hidden===true);
+ assert(document.querySelector('#copy-art-link').hidden,'unpublished local work does not advertise a nonworking public link');
+ assert(!document.querySelector('.sg-extra-share').open,'secondary channel choices do not crowd the primary save/share flow');
  await document.querySelector('#keep-image').onclick();
  await document.querySelector('#keep-image').onclick();
  assert.match(document.querySelector('#keep-image').textContent,/보관 완료/);
