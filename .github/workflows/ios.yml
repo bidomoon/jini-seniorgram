@@ -1,9 +1,7 @@
 name: iOS build and tests
+# Standalone Seniorgram development paused by owner on 2026-11-18.
+# Keep the build reproducible on explicit manual request; do not start automatic iOS builds.
 on:
-  push:
-    paths: ['ios/**', '.github/workflows/ios.yml']
-  pull_request:
-    paths: ['ios/**', '.github/workflows/ios.yml']
   workflow_dispatch:
 permissions:
   contents: read
